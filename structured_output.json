@@ -1,0 +1,1528 @@
+{
+    "Page 1": [
+        {
+            "type": "Title",
+            "text": "Providedproperattributionisprovided,Googleherebygrantspermissionto"
+        },
+        {
+            "type": "Title",
+            "text": "reproducethetablesandfiguresinthispapersolelyforuseinjournalisticor"
+        },
+        {
+            "type": "Title",
+            "text": "scholarlyworks."
+        },
+        {
+            "type": "Title",
+            "text": "Attention Is All You Need"
+        },
+        {
+            "type": "Title",
+            "text": "AshishVaswani \u2217 NoamShazeer \u2217 NikiParmar \u2217 JakobUszkoreit \u2217"
+        },
+        {
+            "type": "Title",
+            "text": "GoogleBrain GoogleBrain GoogleResearch GoogleResearch"
+        },
+        {
+            "type": "Title",
+            "text": "avaswani@google.com noam@google.com nikip@google.com usz@google.com"
+        },
+        {
+            "type": "Title",
+            "text": "LlionJones \u2217 AidanN.Gomez \u2217 \u2020 \u0141ukaszKaiser \u2217"
+        },
+        {
+            "type": "Title",
+            "text": "GoogleResearch UniversityofToronto GoogleBrain"
+        },
+        {
+            "type": "Title",
+            "text": "llion@google.com aidan@cs.toronto.edu lukaszkaiser@google.com"
+        },
+        {
+            "type": "Title",
+            "text": "IlliaPolosukhin \u2217 \u2021"
+        },
+        {
+            "type": "Title",
+            "text": "illia.polosukhin@gmail.com"
+        },
+        {
+            "type": "Title",
+            "text": "Abstract"
+        },
+        {
+            "type": "Title",
+            "text": "Thedominantsequencetransductionmodelsarebasedoncomplexrecurrentor convolutionalneuralnetworksthatincludeanencoderandadecoder. Thebest performing models also connect the encoder and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer, basedsolelyonattentionmechanisms,dispensingwithrecurrenceandconvolutions entirely. Experiments on two machine translation tasks show these models to besuperiorinqualitywhilebeingmoreparallelizableandrequiringsignificantly less time to train. Our model achieves 28.4 BLEU on the WMT 2014 English- to-German translation task, improving over the existing best results, including ensembles,byover2BLEU.OntheWMT2014English-to-Frenchtranslationtask, ourmodelestablishesanewsingle-modelstate-of-the-artBLEUscoreof41.8after trainingfor3.5daysoneightGPUs,asmallfractionofthetrainingcostsofthe bestmodelsfromtheliterature. WeshowthattheTransformergeneralizeswellto othertasksbyapplyingitsuccessfullytoEnglishconstituencyparsingbothwith largeandlimitedtrainingdata."
+        },
+        {
+            "type": "Title",
+            "text": "\u2217 Equalcontribution.Listingorderisrandom.JakobproposedreplacingRNNswithself-attentionandstarted theefforttoevaluatethisidea.Ashish,withIllia,designedandimplementedthefirstTransformermodelsand hasbeencruciallyinvolvedineveryaspectofthiswork.Noamproposedscaleddot-productattention,multi-head attentionandtheparameter-freepositionrepresentationandbecametheotherpersoninvolvedinnearlyevery detail.Nikidesigned,implemented,tunedandevaluatedcountlessmodelvariantsinouroriginalcodebaseand tensor2tensor.Llionalsoexperimentedwithnovelmodelvariants,wasresponsibleforourinitialcodebase,and efficientinferenceandvisualizations.LukaszandAidanspentcountlesslongdaysdesigningvariouspartsofand implementingtensor2tensor,replacingourearliercodebase,greatlyimprovingresultsandmassivelyaccelerating ourresearch. \u2020 WorkperformedwhileatGoogleBrain. \u2021 WorkperformedwhileatGoogleResearch."
+        },
+        {
+            "type": "Title",
+            "text": "31stConferenceonNeuralInformationProcessingSystems(NIPS2017),LongBeach,CA,USA. 3202"
+        },
+        {
+            "type": "Title",
+            "text": "gu A"
+        },
+        {
+            "type": "Title",
+            "text": "2"
+        },
+        {
+            "type": "Title",
+            "text": "] L C . s c ["
+        },
+        {
+            "type": "Title",
+            "text": "7v26730 . 6071 : v i X r a"
+        }
+    ],
+    "Page 2": [
+        {
+            "type": "Title",
+            "text": "1 Introduction"
+        },
+        {
+            "type": "Title",
+            "text": "Recurrentneuralnetworks,longshort-termmemory[13]andgatedrecurrent[7]neuralnetworks inparticular,havebeenfirmlyestablishedasstateoftheartapproachesinsequencemodelingand transductionproblemssuchaslanguagemodelingandmachinetranslation[35,2,5]. Numerous effortshavesincecontinuedtopushtheboundariesofrecurrentlanguagemodelsandencoder-decoder architectures[38,24,15]."
+        },
+        {
+            "type": "Title",
+            "text": "Recurrentmodelstypicallyfactorcomputationalongthesymbolpositionsoftheinputandoutput sequences. Aligningthepositionstostepsincomputationtime,theygenerateasequenceofhidden states h ,asafunctionoftheprevioushiddenstate h andtheinputforposition t . Thisinherently t t \u2212 1 sequentialnatureprecludesparallelizationwithintrainingexamples,whichbecomescriticalatlonger sequencelengths,asmemoryconstraintslimitbatchingacrossexamples. Recentworkhasachieved significantimprovementsincomputationalefficiencythroughfactorizationtricks[21]andconditional computation[32],whilealsoimprovingmodelperformanceincaseofthelatter. Thefundamental constraintofsequentialcomputation,however,remains."
+        },
+        {
+            "type": "Title",
+            "text": "Attentionmechanismshavebecomeanintegralpartofcompellingsequencemodelingandtransduc- tionmodelsinvarioustasks,allowingmodelingofdependencieswithoutregardtotheirdistancein theinputoroutputsequences[2,19]. Inallbutafewcases[27],however,suchattentionmechanisms areusedinconjunctionwitharecurrentnetwork."
+        },
+        {
+            "type": "Title",
+            "text": "InthisworkweproposetheTransformer,amodelarchitectureeschewingrecurrenceandinstead relyingentirelyonanattentionmechanismtodrawglobaldependenciesbetweeninputandoutput. TheTransformerallowsforsignificantlymoreparallelizationandcanreachanewstateoftheartin translationqualityafterbeingtrainedforaslittleastwelvehoursoneightP100GPUs."
+        },
+        {
+            "type": "Title",
+            "text": "2 Background"
+        },
+        {
+            "type": "Title",
+            "text": "ThegoalofreducingsequentialcomputationalsoformsthefoundationoftheExtendedNeuralGPU [16],ByteNet[18]andConvS2S[9],allofwhichuseconvolutionalneuralnetworksasbasicbuilding block,computinghiddenrepresentationsinparallelforallinputandoutputpositions.Inthesemodels, thenumberofoperationsrequiredtorelatesignalsfromtwoarbitraryinputoroutputpositionsgrows inthedistancebetweenpositions,linearlyforConvS2SandlogarithmicallyforByteNet. Thismakes it more difficult to learn dependencies between distant positions [12]. In the Transformer this is reducedtoaconstantnumberofoperations, albeitatthecostofreducedeffectiveresolutiondue to averaging attention-weighted positions, an effect we counteract with Multi-Head Attention as describedinsection3.2."
+        },
+        {
+            "type": "Title",
+            "text": "Self-attention,sometimescalledintra-attentionisanattentionmechanismrelatingdifferentpositions ofasinglesequenceinordertocomputearepresentationofthesequence. Self-attentionhasbeen usedsuccessfullyinavarietyoftasksincludingreadingcomprehension,abstractivesummarization, textualentailmentandlearningtask-independentsentencerepresentations[4,27,28,22]."
+        },
+        {
+            "type": "Title",
+            "text": "End-to-endmemorynetworksarebasedonarecurrentattentionmechanisminsteadofsequence- alignedrecurrenceandhavebeenshowntoperformwellonsimple-languagequestionansweringand languagemodelingtasks[34]."
+        },
+        {
+            "type": "Title",
+            "text": "To the best of our knowledge, however, the Transformer is the first transduction model relying entirelyonself-attentiontocomputerepresentationsofitsinputandoutputwithoutusingsequence- alignedRNNsorconvolution. Inthefollowingsections,wewilldescribetheTransformer,motivate self-attentionanddiscussitsadvantagesovermodelssuchas[17,18]and[9]."
+        },
+        {
+            "type": "Title",
+            "text": "3 ModelArchitecture"
+        },
+        {
+            "type": "Title",
+            "text": "Mostcompetitiveneuralsequencetransductionmodelshaveanencoder-decoderstructure[5,2,35]. Here, the encoder maps an input sequence of symbol representations ( x ,...,x ) to a sequence 1 n of continuous representations z = ( z ,...,z ) . Given z , the decoder then generates an output 1 n sequence ( y ,...,y ) ofsymbolsoneelementatatime. Ateachstepthemodelisauto-regressive 1 m [10],consumingthepreviouslygeneratedsymbolsasadditionalinputwhengeneratingthenext."
+        },
+        {
+            "type": "Title",
+            "text": "2"
+        }
+    ],
+    "Page 3": [
+        {
+            "type": "Title",
+            "text": "Figure1: TheTransformer-modelarchitecture."
+        },
+        {
+            "type": "Title",
+            "text": "TheTransformerfollowsthisoverallarchitectureusingstackedself-attentionandpoint-wise,fully connectedlayersforboththeencoderanddecoder,shownintheleftandrighthalvesofFigure1, respectively."
+        },
+        {
+            "type": "Title",
+            "text": "3.1 EncoderandDecoderStacks"
+        },
+        {
+            "type": "Title",
+            "text": "Encoder: The encoder is composed of a stack of N = 6 identical layers. Each layer has two sub-layers. Thefirstisamulti-headself-attentionmechanism,andthesecondisasimple,position- wisefullyconnectedfeed-forwardnetwork. Weemployaresidualconnection[11]aroundeachof the two sub-layers, followed by layer normalization [1]. That is, the output of each sub-layer is LayerNorm( x +Sublayer( x )) ,where Sublayer( x ) isthefunctionimplementedbythesub-layer itself. Tofacilitatetheseresidualconnections,allsub-layersinthemodel,aswellastheembedding layers,produceoutputsofdimension d =512 . model"
+        },
+        {
+            "type": "Title",
+            "text": "Decoder: Thedecoderisalsocomposedofastackof N =6 identicallayers. Inadditiontothetwo sub-layersineachencoderlayer,thedecoderinsertsathirdsub-layer,whichperformsmulti-head attentionovertheoutputoftheencoderstack. Similartotheencoder,weemployresidualconnections aroundeachofthesub-layers,followedbylayernormalization. Wealsomodifytheself-attention sub-layer in the decoder stack to prevent positions from attending to subsequent positions. This masking,combinedwithfactthattheoutputembeddingsareoffsetbyoneposition,ensuresthatthe predictionsforposition i candependonlyontheknownoutputsatpositionslessthan i ."
+        },
+        {
+            "type": "Title",
+            "text": "3.2 Attention"
+        },
+        {
+            "type": "Title",
+            "text": "Anattentionfunctioncanbedescribedasmappingaqueryandasetofkey-valuepairstoanoutput, wherethequery,keys,values,andoutputareallvectors. Theoutputiscomputedasaweightedsum"
+        },
+        {
+            "type": "Title",
+            "text": "3"
+        }
+    ],
+    "Page 4": [
+        {
+            "type": "Title",
+            "text": "ScaledDot-ProductAttention Multi-HeadAttention"
+        },
+        {
+            "type": "Title",
+            "text": "Figure 2: (left) Scaled Dot-Product Attention. (right) Multi-Head Attention consists of several attentionlayersrunninginparallel."
+        },
+        {
+            "type": "Title",
+            "text": "ofthevalues,wheretheweightassignedtoeachvalueiscomputedbyacompatibilityfunctionofthe querywiththecorrespondingkey."
+        },
+        {
+            "type": "Title",
+            "text": "3.2.1 ScaledDot-ProductAttention"
+        },
+        {
+            "type": "Title",
+            "text": "Wecallourparticularattention\"ScaledDot-ProductAttention\"(Figure2). Theinputconsistsof queriesandkeysofdimension d k ,a \u221a ndvaluesofdimension d v . Wecomputethedotproductsofthe querywithallkeys,divideeachby d ,andapplyasoftmaxfunctiontoobtaintheweightsonthe k values."
+        },
+        {
+            "type": "Title",
+            "text": "Inpractice,wecomputetheattentionfunctiononasetofqueriessimultaneously,packedtogether intoamatrix Q . Thekeysandvaluesarealsopackedtogetherintomatrices K and V . Wecompute thematrixofoutputsas:"
+        },
+        {
+            "type": "Title",
+            "text": "QK T Attention( Q,K,V )=softmax( \u221a ) V (1) d k"
+        },
+        {
+            "type": "Title",
+            "text": "Thetwomostcommonlyusedattentionfunctionsareadditiveattention[2],anddot-product(multi- plicative)attention. Dot-productattentionisidenticaltoouralgorithm,exceptforthescalingfactor of \u221a 1 . Additiveattentioncomputesthecompatibilityfunctionusingafeed-forwardnetworkwith d k asinglehiddenlayer. Whilethetwoaresimilarintheoreticalcomplexity,dot-productattentionis muchfasterandmorespace-efficientinpractice,sinceitcanbeimplementedusinghighlyoptimized matrixmultiplicationcode."
+        },
+        {
+            "type": "Title",
+            "text": "Whileforsmallvaluesof d thetwomechanismsperformsimilarly,additiveattentionoutperforms k dotproductattentionwithoutscalingforlargervaluesof d [3]. Wesuspectthatforlargevaluesof k d ,thedotproductsgrowlargeinmagnitude,pushingthesoftmaxfunctionintoregionswhereithas k extremelysmallgradients 4 . Tocounteractthiseffect,wescalethedotproductsby \u221a 1 . d k"
+        },
+        {
+            "type": "Title",
+            "text": "3.2.2 Multi-HeadAttention"
+        },
+        {
+            "type": "Title",
+            "text": "Insteadofperformingasingleattentionfunctionwith d -dimensionalkeys,valuesandqueries, model wefounditbeneficialtolinearlyprojectthequeries,keysandvalues h timeswithdifferent,learned linearprojectionsto d , d and d dimensions,respectively. Oneachoftheseprojectedversionsof k k v queries,keysandvalueswethenperformtheattentionfunctioninparallel,yielding d -dimensional v"
+        },
+        {
+            "type": "Title",
+            "text": "4 Toillustratewhythedotproductsgetlarge,assumethatthecomponentsof q and k areindependentrandom"
+        },
+        {
+            "type": "Title",
+            "text": "variableswithmean 0 andvariance 1 .Thentheirdotproduct, q \u00b7 k = (cid:80) d k q k ,hasmean 0 andvariance d . i =1 i i k"
+        },
+        {
+            "type": "Title",
+            "text": "4"
+        }
+    ],
+    "Page 5": [
+        {
+            "type": "Title",
+            "text": "output values. These are concatenated and once again projected, resulting in the final values, as depictedinFigure2."
+        },
+        {
+            "type": "Title",
+            "text": "Multi-headattentionallowsthemodeltojointlyattendtoinformationfromdifferentrepresentation subspacesatdifferentpositions. Withasingleattentionhead,averaginginhibitsthis."
+        },
+        {
+            "type": "Title",
+            "text": "MultiHead( Q,K,V )=Concat(head ,..., head ) W O 1 h"
+        },
+        {
+            "type": "Title",
+            "text": "where head =Attention( QW Q ,KW K ,VW V ) i i i i"
+        },
+        {
+            "type": "Title",
+            "text": "Wheretheprojectionsareparametermatrices W Q \u2208 R d model \u00d7 d k , W K \u2208 R d model \u00d7 d k , W V \u2208 R d model \u00d7 d v i i i and W O \u2208 R hd v \u00d7 d model ."
+        },
+        {
+            "type": "Title",
+            "text": "In this work we employ h = 8 parallel attention layers, or heads. For each of these we use d = d = d /h =64 . Duetothereduceddimensionofeachhead,thetotalcomputationalcost k v model issimilartothatofsingle-headattentionwithfulldimensionality."
+        },
+        {
+            "type": "Title",
+            "text": "3.2.3 ApplicationsofAttentioninourModel"
+        },
+        {
+            "type": "Title",
+            "text": "TheTransformerusesmulti-headattentioninthreedifferentways:"
+        },
+        {
+            "type": "Title",
+            "text": "\u2022 In\"encoder-decoderattention\"layers,thequeriescomefromthepreviousdecoderlayer, andthememorykeysandvaluescomefromtheoutputoftheencoder. Thisallowsevery positioninthedecodertoattendoverallpositionsintheinputsequence. Thismimicsthe typical encoder-decoder attention mechanisms in sequence-to-sequence models such as [38,2,9]."
+        },
+        {
+            "type": "Title",
+            "text": "\u2022 Theencodercontainsself-attentionlayers. Inaself-attentionlayerallofthekeys,values andqueriescomefromthesameplace,inthiscase,theoutputofthepreviouslayerinthe encoder. Eachpositionintheencodercanattendtoallpositionsinthepreviouslayerofthe encoder."
+        },
+        {
+            "type": "Title",
+            "text": "\u2022 Similarly,self-attentionlayersinthedecoderalloweachpositioninthedecodertoattendto allpositionsinthedecoderuptoandincludingthatposition. Weneedtopreventleftward informationflowinthedecodertopreservetheauto-regressiveproperty. Weimplementthis insideofscaleddot-productattentionbymaskingout(settingto \u2212\u221e )allvaluesintheinput ofthesoftmaxwhichcorrespondtoillegalconnections. SeeFigure2."
+        },
+        {
+            "type": "Title",
+            "text": "3.3 Position-wiseFeed-ForwardNetworks"
+        },
+        {
+            "type": "Title",
+            "text": "Inadditiontoattentionsub-layers,eachofthelayersinourencoderanddecodercontainsafully connectedfeed-forwardnetwork,whichisappliedtoeachpositionseparatelyandidentically. This consistsoftwolineartransformationswithaReLUactivationinbetween."
+        },
+        {
+            "type": "Title",
+            "text": "FFN( x )=max(0 ,xW + b ) W + b (2) 1 1 2 2"
+        },
+        {
+            "type": "Title",
+            "text": "Whilethelineartransformationsarethesameacrossdifferentpositions,theyusedifferentparameters from layer to layer. Another way of describing this is as two convolutions with kernel size 1. The dimensionality of input and output is d = 512 , and the inner-layer has dimensionality model d =2048 . ff"
+        },
+        {
+            "type": "Title",
+            "text": "3.4 EmbeddingsandSoftmax"
+        },
+        {
+            "type": "Title",
+            "text": "Similarlytoothersequencetransductionmodels,weuselearnedembeddingstoconverttheinput tokensandoutputtokenstovectorsofdimension d . Wealsousetheusuallearnedlineartransfor- model mationandsoftmaxfunctiontoconvertthedecoderoutputtopredictednext-tokenprobabilities. In ourmodel,wesharethesameweightmatrixbetweenthetwoembeddinglayersandthepre- \u221a softmax lineartransformation,similarto[30]. Intheembeddinglayers,wemultiplythoseweightsby d . model"
+        },
+        {
+            "type": "Title",
+            "text": "5"
+        }
+    ],
+    "Page 6": [
+        {
+            "type": "Title",
+            "text": "Table1: Maximumpathlengths,per-layercomplexityandminimumnumberofsequentialoperations fordifferentlayertypes. n isthesequencelength, d istherepresentationdimension, k isthekernel sizeofconvolutionsand r thesizeoftheneighborhoodinrestrictedself-attention."
+        },
+        {
+            "type": "Title",
+            "text": "LayerType ComplexityperLayer Sequential MaximumPathLength Operations"
+        },
+        {
+            "type": "Title",
+            "text": "Self-Attention O ( n 2 \u00b7 d ) O (1) O (1)"
+        },
+        {
+            "type": "Title",
+            "text": "Recurrent O ( n \u00b7 d 2 ) O ( n ) O ( n )"
+        },
+        {
+            "type": "Title",
+            "text": "Convolutional O ( k \u00b7 n \u00b7 d 2 ) O (1) O ( log ( n )) k Self-Attention(restricted) O ( r \u00b7 n \u00b7 d ) O (1) O ( n/r )"
+        },
+        {
+            "type": "Title",
+            "text": "3.5 PositionalEncoding"
+        },
+        {
+            "type": "Title",
+            "text": "Sinceourmodelcontainsnorecurrenceandnoconvolution,inorderforthemodeltomakeuseofthe orderofthesequence,wemustinjectsomeinformationabouttherelativeorabsolutepositionofthe tokensinthesequence. Tothisend,weadd\"positionalencodings\"totheinputembeddingsatthe bottomsoftheencoderanddecoderstacks. Thepositionalencodingshavethesamedimension d model astheembeddings,sothatthetwocanbesummed. Therearemanychoicesofpositionalencodings, learnedandfixed[9]."
+        },
+        {
+            "type": "Title",
+            "text": "Inthiswork,weusesineandcosinefunctionsofdifferentfrequencies:"
+        },
+        {
+            "type": "Title",
+            "text": "PE = sin ( pos/ 10000 2 i/d model ) ( pos, 2 i )"
+        },
+        {
+            "type": "Title",
+            "text": "PE = cos ( pos/ 10000 2 i/d model ) ( pos, 2 i +1)"
+        },
+        {
+            "type": "Title",
+            "text": "where pos isthepositionand i isthedimension. Thatis,eachdimensionofthepositionalencoding correspondstoasinusoid. Thewavelengthsformageometricprogressionfrom 2 \u03c0 to 10000 \u00b7 2 \u03c0 . We chosethisfunctionbecausewehypothesizeditwouldallowthemodeltoeasilylearntoattendby relativepositions,sinceforanyfixedoffset k , PE canberepresentedasalinearfunctionof pos + k PE . pos"
+        },
+        {
+            "type": "Title",
+            "text": "Wealsoexperimentedwithusinglearnedpositionalembeddings[9]instead,andfoundthatthetwo versionsproducednearlyidenticalresults(seeTable3row(E)).Wechosethesinusoidalversion becauseitmayallowthemodeltoextrapolatetosequencelengthslongerthantheonesencountered duringtraining."
+        },
+        {
+            "type": "Title",
+            "text": "4 WhySelf-Attention"
+        },
+        {
+            "type": "Title",
+            "text": "In this section we compare various aspects of self-attention layers to the recurrent and convolu- tionallayerscommonlyusedformappingonevariable-lengthsequenceofsymbolrepresentations ( x ,...,x ) to another sequence of equal length ( z ,...,z ) , with x ,z \u2208 R d , such as a hidden 1 n 1 n i i layerinatypicalsequencetransductionencoderordecoder. Motivatingouruseofself-attentionwe considerthreedesiderata."
+        },
+        {
+            "type": "Title",
+            "text": "Oneisthetotalcomputationalcomplexityperlayer. Anotheristheamountofcomputationthatcan beparallelized,asmeasuredbytheminimumnumberofsequentialoperationsrequired."
+        },
+        {
+            "type": "Title",
+            "text": "Thethirdisthepathlengthbetweenlong-rangedependenciesinthenetwork. Learninglong-range dependenciesisakeychallengeinmanysequencetransductiontasks. Onekeyfactoraffectingthe abilitytolearnsuchdependenciesisthelengthofthepathsforwardandbackwardsignalshaveto traverseinthenetwork. Theshorterthesepathsbetweenanycombinationofpositionsintheinput andoutputsequences,theeasieritistolearnlong-rangedependencies[12]. Hencewealsocompare themaximumpathlengthbetweenanytwoinputandoutputpositionsinnetworkscomposedofthe differentlayertypes."
+        },
+        {
+            "type": "Title",
+            "text": "AsnotedinTable1,aself-attentionlayerconnectsallpositionswithaconstantnumberofsequentially executed operations, whereas a recurrent layer requires O ( n ) sequential operations. In terms of computationalcomplexity,self-attentionlayersarefasterthanrecurrentlayerswhenthesequence"
+        },
+        {
+            "type": "Title",
+            "text": "6"
+        }
+    ],
+    "Page 7": [
+        {
+            "type": "Title",
+            "text": "length n is smaller than the representation dimensionality d , which is most often the case with sentencerepresentationsusedbystate-of-the-artmodelsinmachinetranslations,suchasword-piece [38]andbyte-pair[31]representations. Toimprovecomputationalperformancefortasksinvolving verylongsequences,self-attentioncouldberestrictedtoconsideringonlyaneighborhoodofsize r in theinputsequencecenteredaroundtherespectiveoutputposition. Thiswouldincreasethemaximum pathlengthto O ( n/r ) . Weplantoinvestigatethisapproachfurtherinfuturework."
+        },
+        {
+            "type": "Title",
+            "text": "Asingleconvolutionallayerwithkernelwidth k <n doesnotconnectallpairsofinputandoutput positions. Doingsorequiresastackof O ( n/k ) convolutionallayersinthecaseofcontiguouskernels, or O ( log ( n )) inthecaseofdilatedconvolutions[18], increasingthelengthofthelongestpaths k betweenanytwopositionsinthenetwork. Convolutionallayersaregenerallymoreexpensivethan recurrent layers, by a factor of k . Separable convolutions [6], however, decrease the complexity considerably, to O ( k \u00b7 n \u00b7 d + n \u00b7 d 2 ) . Evenwith k = n , however, thecomplexityofaseparable convolutionisequaltothecombinationofaself-attentionlayerandapoint-wisefeed-forwardlayer, theapproachwetakeinourmodel."
+        },
+        {
+            "type": "Title",
+            "text": "Assidebenefit,self-attentioncouldyieldmoreinterpretablemodels.Weinspectattentiondistributions fromourmodelsandpresentanddiscussexamplesintheappendix. Notonlydoindividualattention headsclearlylearntoperformdifferenttasks,manyappeartoexhibitbehaviorrelatedtothesyntactic andsemanticstructureofthesentences."
+        },
+        {
+            "type": "Title",
+            "text": "5 Training"
+        },
+        {
+            "type": "Title",
+            "text": "Thissectiondescribesthetrainingregimeforourmodels."
+        },
+        {
+            "type": "Title",
+            "text": "5.1 TrainingDataandBatching"
+        },
+        {
+            "type": "Title",
+            "text": "We trained on the standard WMT 2014 English-German dataset consisting of about 4.5 million sentencepairs. Sentenceswereencodedusingbyte-pairencoding[3],whichhasasharedsource- targetvocabularyofabout37000tokens. ForEnglish-French,weusedthesignificantlylargerWMT 2014English-Frenchdatasetconsistingof36Msentencesandsplittokensintoa32000word-piece vocabulary[38].Sentencepairswerebatchedtogetherbyapproximatesequencelength.Eachtraining batchcontainedasetofsentencepairscontainingapproximately25000sourcetokensand25000 targettokens."
+        },
+        {
+            "type": "Title",
+            "text": "5.2 HardwareandSchedule"
+        },
+        {
+            "type": "Title",
+            "text": "Wetrainedourmodelsononemachinewith8NVIDIAP100GPUs. Forourbasemodelsusing thehyperparametersdescribedthroughoutthepaper,eachtrainingsteptookabout0.4seconds. We trainedthebasemodelsforatotalof100,000stepsor12hours. Forourbigmodels,(describedonthe bottomlineoftable3),steptimewas1.0seconds. Thebigmodelsweretrainedfor300,000steps (3.5days)."
+        },
+        {
+            "type": "Title",
+            "text": "5.3 Optimizer"
+        },
+        {
+            "type": "Title",
+            "text": "WeusedtheAdamoptimizer[20]with \u03b2 =0 . 9 , \u03b2 =0 . 98 and \u03f5 =10 \u2212 9 . Wevariedthelearning 1 2 rateoverthecourseoftraining,accordingtotheformula:"
+        },
+        {
+            "type": "Title",
+            "text": "lrate = d \u2212 0 . 5 \u00b7 min( step _ num \u2212 0 . 5 ,step _ num \u00b7 warmup _ steps \u2212 1 . 5 ) (3) model"
+        },
+        {
+            "type": "Title",
+            "text": "Thiscorrespondstoincreasingthelearningratelinearlyforthefirst warmup _ steps trainingsteps, anddecreasingitthereafterproportionallytotheinversesquarerootofthestepnumber. Weused warmup _ steps =4000 ."
+        },
+        {
+            "type": "Title",
+            "text": "5.4 Regularization"
+        },
+        {
+            "type": "Title",
+            "text": "Weemploythreetypesofregularizationduringtraining:"
+        },
+        {
+            "type": "Title",
+            "text": "7"
+        }
+    ],
+    "Page 8": [
+        {
+            "type": "Title",
+            "text": "Table2: TheTransformerachievesbetterBLEUscoresthanpreviousstate-of-the-artmodelsonthe English-to-GermanandEnglish-to-Frenchnewstest2014testsatafractionofthetrainingcost."
+        },
+        {
+            "type": "Title",
+            "text": "BLEU TrainingCost(FLOPs) Model EN-DE EN-FR EN-DE EN-FR"
+        },
+        {
+            "type": "Title",
+            "text": "ByteNet[18] 23.75"
+        },
+        {
+            "type": "Title",
+            "text": "Deep-Att+PosUnk[39] 39.2 1 . 0 \u00b7 10 20"
+        },
+        {
+            "type": "Title",
+            "text": "GNMT+RL[38] 24.6 39.92 2 . 3 \u00b7 10 19 1 . 4 \u00b7 10 20"
+        },
+        {
+            "type": "Title",
+            "text": "ConvS2S[9] 25.16 40.46 9 . 6 \u00b7 10 18 1 . 5 \u00b7 10 20"
+        },
+        {
+            "type": "Title",
+            "text": "MoE[32] 26.03 40.56 2 . 0 \u00b7 10 19 1 . 2 \u00b7 10 20"
+        },
+        {
+            "type": "Title",
+            "text": "Deep-Att+PosUnkEnsemble[39] 40.4 8 . 0 \u00b7 10 20"
+        },
+        {
+            "type": "Title",
+            "text": "GNMT+RLEnsemble[38] 26.30 41.16 1 . 8 \u00b7 10 20 1 . 1 \u00b7 10 21"
+        },
+        {
+            "type": "Title",
+            "text": "ConvS2SEnsemble[9] 26.36 41.29 7 . 7 \u00b7 10 19 1 . 2 \u00b7 10 21"
+        },
+        {
+            "type": "Title",
+            "text": "Transformer(basemodel) 27.3 38.1 3 . 3 \u00b7 10 18"
+        },
+        {
+            "type": "Title",
+            "text": "Transformer(big) 28.4 41.8 2 . 3 \u00b7 10 19"
+        },
+        {
+            "type": "Title",
+            "text": "ResidualDropout Weapplydropout[33]totheoutputofeachsub-layer,beforeitisaddedtothe sub-layerinputandnormalized. Inaddition,weapplydropouttothesumsoftheembeddingsandthe positionalencodingsinboththeencoderanddecoderstacks. Forthebasemodel,weusearateof P =0 . 1 . drop"
+        },
+        {
+            "type": "Title",
+            "text": "LabelSmoothing Duringtraining,weemployedlabelsmoothingofvalue \u03f5 = 0 . 1 [36]. This ls hurtsperplexity,asthemodellearnstobemoreunsure,butimprovesaccuracyandBLEUscore."
+        },
+        {
+            "type": "Title",
+            "text": "6 Results"
+        },
+        {
+            "type": "Title",
+            "text": "6.1 MachineTranslation"
+        },
+        {
+            "type": "Title",
+            "text": "OntheWMT2014English-to-Germantranslationtask,thebigtransformermodel(Transformer(big) inTable2)outperformsthebestpreviouslyreportedmodels(includingensembles)bymorethan 2 . 0"
+        },
+        {
+            "type": "Title",
+            "text": "BLEU,establishinganewstate-of-the-artBLEUscoreof 28 . 4 . Theconfigurationofthismodelis listedinthebottomlineofTable3. Trainingtook 3 . 5 dayson 8 P100GPUs. Evenourbasemodel surpassesallpreviouslypublishedmodelsandensembles,atafractionofthetrainingcostofanyof thecompetitivemodels."
+        },
+        {
+            "type": "Title",
+            "text": "OntheWMT2014English-to-Frenchtranslationtask,ourbigmodelachievesaBLEUscoreof 41 . 0 , outperformingallofthepreviouslypublishedsinglemodels,atlessthan 1 / 4 thetrainingcostofthe previousstate-of-the-artmodel. TheTransformer(big)modeltrainedforEnglish-to-Frenchused dropoutrate P =0 . 1 ,insteadof 0 . 3 . drop"
+        },
+        {
+            "type": "Title",
+            "text": "Forthebasemodels,weusedasinglemodelobtainedbyaveragingthelast5checkpoints,which werewrittenat10-minuteintervals. Forthebigmodels,weaveragedthelast20checkpoints. We usedbeamsearchwithabeamsizeof 4 andlengthpenalty \u03b1 = 0 . 6 [38]. Thesehyperparameters werechosenafterexperimentationonthedevelopmentset. Wesetthemaximumoutputlengthduring inferencetoinputlength+ 50 ,butterminateearlywhenpossible[38]."
+        },
+        {
+            "type": "Title",
+            "text": "Table2summarizesourresultsandcomparesourtranslationqualityandtrainingcoststoothermodel architecturesfromtheliterature. Weestimatethenumberoffloatingpointoperationsusedtotraina modelbymultiplyingthetrainingtime,thenumberofGPUsused,andanestimateofthesustained single-precisionfloating-pointcapacityofeachGPU 5 ."
+        },
+        {
+            "type": "Title",
+            "text": "6.2 ModelVariations"
+        },
+        {
+            "type": "Title",
+            "text": "ToevaluatetheimportanceofdifferentcomponentsoftheTransformer,wevariedourbasemodel indifferentways,measuringthechangeinperformanceonEnglish-to-Germantranslationonthe"
+        },
+        {
+            "type": "Title",
+            "text": "5 Weusedvaluesof2.8,3.7,6.0and9.5TFLOPSforK80,K40,M40andP100,respectively."
+        },
+        {
+            "type": "Title",
+            "text": "8"
+        }
+    ],
+    "Page 9": [
+        {
+            "type": "Title",
+            "text": "Table3: VariationsontheTransformerarchitecture. Unlistedvaluesareidenticaltothoseofthebase model. AllmetricsareontheEnglish-to-Germantranslationdevelopmentset,newstest2013. Listed perplexitiesareper-wordpiece,accordingtoourbyte-pairencoding,andshouldnotbecomparedto per-wordperplexities."
+        },
+        {
+            "type": "Title",
+            "text": "train PPL BLEU params N d d h d d P \u03f5 model ff k v drop ls steps (dev) (dev) \u00d7 10 6"
+        },
+        {
+            "type": "Title",
+            "text": "base 6 512 2048 8 64 64 0.1 0.1 100K 4.92 25.8 65"
+        },
+        {
+            "type": "Title",
+            "text": "1 512 512 5.29 24.9 4 128 128 5.00 25.5 (A) 16 32 32 4.91 25.8 32 16 16 5.01 25.4"
+        },
+        {
+            "type": "Title",
+            "text": "16 5.16 25.1 58 (B) 32 5.01 25.4 60"
+        },
+        {
+            "type": "Title",
+            "text": "2 6.11 23.7 36 4 5.19 25.3 50 8 4.88 25.5 80 (C) 256 32 32 5.75 24.5 28 1024 128 128 4.66 26.0 168 1024 5.12 25.4 53 4096 4.75 26.2 90"
+        },
+        {
+            "type": "Title",
+            "text": "0.0 5.77 24.6 0.2 4.95 25.5 (D) 0.0 4.67 25.3 0.2 5.47 25.7"
+        },
+        {
+            "type": "Title",
+            "text": "(E) positionalembeddinginsteadofsinusoids 4.92 25.7"
+        },
+        {
+            "type": "Title",
+            "text": "big 6 1024 4096 16 0.3 300K 4.33 26.4 213"
+        },
+        {
+            "type": "Title",
+            "text": "developmentset,newstest2013. Weusedbeamsearchasdescribedintheprevioussection,butno checkpointaveraging. WepresenttheseresultsinTable3."
+        },
+        {
+            "type": "Title",
+            "text": "InTable3rows(A),wevarythenumberofattentionheadsandtheattentionkeyandvaluedimensions, keeping the amount of computation constant, as described in Section 3.2.2. While single-head attentionis0.9BLEUworsethanthebestsetting,qualityalsodropsoffwithtoomanyheads."
+        },
+        {
+            "type": "Title",
+            "text": "InTable3rows(B),weobservethatreducingtheattentionkeysize d hurtsmodelquality. This k suggests that determining compatibility is not easy and that a more sophisticated compatibility functionthandotproductmaybebeneficial. Wefurtherobserveinrows(C)and(D)that,asexpected, biggermodelsarebetter,anddropoutisveryhelpfulinavoidingover-fitting.Inrow(E)wereplaceour sinusoidalpositionalencodingwithlearnedpositionalembeddings[9],andobservenearlyidentical resultstothebasemodel."
+        },
+        {
+            "type": "Title",
+            "text": "6.3 EnglishConstituencyParsing"
+        },
+        {
+            "type": "Title",
+            "text": "ToevaluateiftheTransformercangeneralizetoothertasksweperformedexperimentsonEnglish constituencyparsing. Thistaskpresentsspecificchallenges: theoutputissubjecttostrongstructural constraints and is significantly longer than the input. Furthermore, RNN sequence-to-sequence modelshavenotbeenabletoattainstate-of-the-artresultsinsmall-dataregimes[37]."
+        },
+        {
+            "type": "Title",
+            "text": "Wetraineda4-layertransformerwith d =1024 ontheWallStreetJournal(WSJ)portionofthe model PennTreebank[25],about40Ktrainingsentences. Wealsotraineditinasemi-supervisedsetting, usingthelargerhigh-confidenceandBerkleyParsercorporafromwithapproximately17Msentences [37]. Weusedavocabularyof16KtokensfortheWSJonlysettingandavocabularyof32Ktokens forthesemi-supervisedsetting."
+        },
+        {
+            "type": "Title",
+            "text": "Weperformedonlyasmallnumberofexperimentstoselectthedropout,bothattentionandresidual (section5.4),learningratesandbeamsizeontheSection22developmentset,allotherparameters remained unchanged from the English-to-German base translation model. During inference, we"
+        },
+        {
+            "type": "Title",
+            "text": "9"
+        }
+    ],
+    "Page 10": [
+        {
+            "type": "Title",
+            "text": "Table4: TheTransformergeneralizeswelltoEnglishconstituencyparsing(ResultsareonSection23 ofWSJ)"
+        },
+        {
+            "type": "Title",
+            "text": "Parser Training WSJ23F1"
+        },
+        {
+            "type": "Title",
+            "text": "Vinyals&Kaiserelal. (2014)[37] WSJonly,discriminative 88.3 Petrovetal. (2006)[29] WSJonly,discriminative 90.4 Zhuetal. (2013)[40] WSJonly,discriminative 90.4 Dyeretal. (2016)[8] WSJonly,discriminative 91.7 Transformer(4layers) WSJonly,discriminative 91.3 Zhuetal. (2013)[40] semi-supervised 91.3 Huang&Harper(2009)[14] semi-supervised 91.3 McCloskyetal. (2006)[26] semi-supervised 92.1 Vinyals&Kaiserelal. (2014)[37] semi-supervised 92.1 Transformer(4layers) semi-supervised 92.7 Luongetal. (2015)[23] multi-task 93.0 Dyeretal. (2016)[8] generative 93.3"
+        },
+        {
+            "type": "Title",
+            "text": "increasedthemaximumoutputlengthtoinputlength+ 300 . Weusedabeamsizeof 21 and \u03b1 =0 . 3"
+        },
+        {
+            "type": "Title",
+            "text": "forbothWSJonlyandthesemi-supervisedsetting."
+        },
+        {
+            "type": "Title",
+            "text": "Our results in Table 4 show that despite the lack of task-specific tuning our model performs sur- prisinglywell,yieldingbetterresultsthanallpreviouslyreportedmodelswiththeexceptionofthe RecurrentNeuralNetworkGrammar[8]."
+        },
+        {
+            "type": "Title",
+            "text": "IncontrasttoRNNsequence-to-sequencemodels[37],theTransformeroutperformstheBerkeley- Parser[29]evenwhentrainingonlyontheWSJtrainingsetof40Ksentences."
+        },
+        {
+            "type": "Title",
+            "text": "7 Conclusion"
+        },
+        {
+            "type": "Title",
+            "text": "Inthiswork,wepresentedtheTransformer,thefirstsequencetransductionmodelbasedentirelyon attention,replacingtherecurrentlayersmostcommonlyusedinencoder-decoderarchitectureswith multi-headedself-attention."
+        },
+        {
+            "type": "Title",
+            "text": "For translation tasks, the Transformer can be trained significantly faster than architectures based on recurrent or convolutional layers. On both WMT 2014 English-to-German and WMT 2014 English-to-Frenchtranslationtasks,weachieveanewstateoftheart. Intheformertaskourbest modeloutperformsevenallpreviouslyreportedensembles."
+        },
+        {
+            "type": "Title",
+            "text": "Weareexcitedaboutthefutureofattention-basedmodelsandplantoapplythemtoothertasks. We plantoextendtheTransformertoproblemsinvolvinginputandoutputmodalitiesotherthantextand toinvestigatelocal,restrictedattentionmechanismstoefficientlyhandlelargeinputsandoutputs suchasimages,audioandvideo. Makinggenerationlesssequentialisanotherresearchgoalsofours."
+        },
+        {
+            "type": "Title",
+            "text": "The code we used to train and evaluate our models is available at https://github.com/ tensorflow/tensor2tensor ."
+        },
+        {
+            "type": "Title",
+            "text": "Acknowledgements WearegratefultoNalKalchbrennerandStephanGouwsfortheirfruitful comments,correctionsandinspiration."
+        },
+        {
+            "type": "Title",
+            "text": "References"
+        },
+        {
+            "type": "Title",
+            "text": "[1] JimmyLeiBa,JamieRyanKiros,andGeoffreyEHinton. Layernormalization. arXivpreprint arXiv:1607.06450 ,2016."
+        },
+        {
+            "type": "Title",
+            "text": "[2] DzmitryBahdanau,KyunghyunCho,andYoshuaBengio. Neuralmachinetranslationbyjointly learningtoalignandtranslate. CoRR ,abs/1409.0473,2014."
+        },
+        {
+            "type": "Title",
+            "text": "[3] DennyBritz,AnnaGoldie,Minh-ThangLuong,andQuocV.Le. Massiveexplorationofneural machinetranslationarchitectures. CoRR ,abs/1703.03906,2017."
+        },
+        {
+            "type": "Title",
+            "text": "[4] JianpengCheng,LiDong,andMirellaLapata. Longshort-termmemory-networksformachine reading. arXivpreprintarXiv:1601.06733 ,2016."
+        },
+        {
+            "type": "Title",
+            "text": "10"
+        }
+    ],
+    "Page 11": [
+        {
+            "type": "Title",
+            "text": "[5] KyunghyunCho,BartvanMerrienboer,CaglarGulcehre,FethiBougares,HolgerSchwenk, andYoshuaBengio. Learningphraserepresentationsusingrnnencoder-decoderforstatistical machinetranslation. CoRR ,abs/1406.1078,2014."
+        },
+        {
+            "type": "Title",
+            "text": "[6] Francois Chollet. Xception: Deep learning with depthwise separable convolutions. arXiv preprintarXiv:1610.02357 ,2016."
+        },
+        {
+            "type": "Title",
+            "text": "[7] JunyoungChung,\u00c7aglarG\u00fcl\u00e7ehre,KyunghyunCho,andYoshuaBengio. Empiricalevaluation ofgatedrecurrentneuralnetworksonsequencemodeling. CoRR ,abs/1412.3555,2014."
+        },
+        {
+            "type": "Title",
+            "text": "[8] Chris Dyer, Adhiguna Kuncoro, Miguel Ballesteros, and Noah A. Smith. Recurrent neural networkgrammars. In Proc.ofNAACL ,2016."
+        },
+        {
+            "type": "Title",
+            "text": "[9] JonasGehring,MichaelAuli,DavidGrangier,DenisYarats,andYannN.Dauphin. Convolu- tionalsequencetosequencelearning. arXivpreprintarXiv:1705.03122v2 ,2017."
+        },
+        {
+            "type": "Title",
+            "text": "[10] Alex Graves. Generating sequences with recurrent neural networks. arXiv preprint arXiv:1308.0850 ,2013."
+        },
+        {
+            "type": "Title",
+            "text": "[11] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for im- age recognition. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition ,pages770\u2013778,2016."
+        },
+        {
+            "type": "Title",
+            "text": "[12] SeppHochreiter,YoshuaBengio,PaoloFrasconi,andJ\u00fcrgenSchmidhuber. Gradientflowin recurrentnets: thedifficultyoflearninglong-termdependencies,2001."
+        },
+        {
+            "type": "Title",
+            "text": "[13] Sepp Hochreiter and J\u00fcrgen Schmidhuber. Long short-term memory. Neural computation , 9(8):1735\u20131780,1997."
+        },
+        {
+            "type": "Title",
+            "text": "[14] ZhongqiangHuangandMaryHarper. Self-trainingPCFGgrammarswithlatentannotations acrosslanguages. In Proceedingsofthe2009ConferenceonEmpiricalMethodsinNatural LanguageProcessing ,pages832\u2013841.ACL,August2009."
+        },
+        {
+            "type": "Title",
+            "text": "[15] RafalJozefowicz,OriolVinyals,MikeSchuster,NoamShazeer,andYonghuiWu. Exploring thelimitsoflanguagemodeling. arXivpreprintarXiv:1602.02410 ,2016."
+        },
+        {
+            "type": "Title",
+            "text": "[16] \u0141ukaszKaiserandSamyBengio. Canactivememoryreplaceattention? In AdvancesinNeural InformationProcessingSystems,(NIPS) ,2016."
+        },
+        {
+            "type": "Title",
+            "text": "[17] \u0141ukaszKaiserandIlyaSutskever. NeuralGPUslearnalgorithms. In InternationalConference onLearningRepresentations(ICLR) ,2016."
+        },
+        {
+            "type": "Title",
+            "text": "[18] NalKalchbrenner,LasseEspeholt,KarenSimonyan,AaronvandenOord,AlexGraves,andKo- rayKavukcuoglu.Neuralmachinetranslationinlineartime. arXivpreprintarXiv:1610.10099v2 , 2017."
+        },
+        {
+            "type": "Title",
+            "text": "[19] YoonKim,CarlDenton,LuongHoang,andAlexanderM.Rush. Structuredattentionnetworks. In InternationalConferenceonLearningRepresentations ,2017."
+        },
+        {
+            "type": "Title",
+            "text": "[20] DiederikKingmaandJimmyBa. Adam: Amethodforstochasticoptimization. In ICLR ,2015."
+        },
+        {
+            "type": "Title",
+            "text": "[21] OleksiiKuchaievandBorisGinsburg. FactorizationtricksforLSTMnetworks. arXivpreprint arXiv:1703.10722 ,2017."
+        },
+        {
+            "type": "Title",
+            "text": "[22] Zhouhan Lin, Minwei Feng, Cicero Nogueira dos Santos, Mo Yu, Bing Xiang, Bowen Zhou, and Yoshua Bengio. A structured self-attentive sentence embedding. arXiv preprint arXiv:1703.03130 ,2017."
+        },
+        {
+            "type": "Title",
+            "text": "[23] Minh-ThangLuong,QuocV.Le,IlyaSutskever,OriolVinyals,andLukaszKaiser. Multi-task sequencetosequencelearning. arXivpreprintarXiv:1511.06114 ,2015."
+        },
+        {
+            "type": "Title",
+            "text": "[24] Minh-ThangLuong,HieuPham,andChristopherDManning. Effectiveapproachestoattention- basedneuralmachinetranslation. arXivpreprintarXiv:1508.04025 ,2015."
+        },
+        {
+            "type": "Title",
+            "text": "11"
+        }
+    ],
+    "Page 12": [
+        {
+            "type": "Title",
+            "text": "[25] MitchellPMarcus,MaryAnnMarcinkiewicz,andBeatriceSantorini.Buildingalargeannotated corpusofenglish: Thepenntreebank. Computationallinguistics ,19(2):313\u2013330,1993."
+        },
+        {
+            "type": "Title",
+            "text": "[26] DavidMcClosky,EugeneCharniak,andMarkJohnson. Effectiveself-trainingforparsing. In ProceedingsoftheHumanLanguageTechnologyConferenceoftheNAACL,MainConference , pages152\u2013159.ACL,June2006."
+        },
+        {
+            "type": "Title",
+            "text": "[27] AnkurParikh,OscarT\u00e4ckstr\u00f6m,DipanjanDas,andJakobUszkoreit. Adecomposableattention model. In EmpiricalMethodsinNaturalLanguageProcessing ,2016."
+        },
+        {
+            "type": "Title",
+            "text": "[28] RomainPaulus,CaimingXiong,andRichardSocher. Adeepreinforcedmodelforabstractive summarization. arXivpreprintarXiv:1705.04304 ,2017."
+        },
+        {
+            "type": "Title",
+            "text": "[29] Slav Petrov, Leon Barrett, Romain Thibaux, and Dan Klein. Learning accurate, compact, and interpretable tree annotation. In Proceedings of the 21st International Conference on ComputationalLinguisticsand44thAnnualMeetingoftheACL ,pages433\u2013440.ACL,July 2006."
+        },
+        {
+            "type": "Title",
+            "text": "[30] OfirPressandLiorWolf. Usingtheoutputembeddingtoimprovelanguagemodels. arXiv preprintarXiv:1608.05859 ,2016."
+        },
+        {
+            "type": "Title",
+            "text": "[31] RicoSennrich,BarryHaddow,andAlexandraBirch. Neuralmachinetranslationofrarewords withsubwordunits. arXivpreprintarXiv:1508.07909 ,2015."
+        },
+        {
+            "type": "Title",
+            "text": "[32] NoamShazeer,AzaliaMirhoseini,KrzysztofMaziarz,AndyDavis,QuocLe,GeoffreyHinton, andJeffDean. Outrageouslylargeneuralnetworks: Thesparsely-gatedmixture-of-experts layer. arXivpreprintarXiv:1701.06538 ,2017."
+        },
+        {
+            "type": "Title",
+            "text": "[33] NitishSrivastava,GeoffreyEHinton,AlexKrizhevsky,IlyaSutskever,andRuslanSalakhutdi- nov. Dropout: asimplewaytopreventneuralnetworksfromoverfitting. JournalofMachine LearningResearch ,15(1):1929\u20131958,2014."
+        },
+        {
+            "type": "Title",
+            "text": "[34] Sainbayar Sukhbaatar, Arthur Szlam, Jason Weston, and Rob Fergus. End-to-end memory networks. InC.Cortes, N.D.Lawrence, D.D.Lee, M.Sugiyama, andR.Garnett, editors, AdvancesinNeuralInformationProcessingSystems28 ,pages2440\u20132448.CurranAssociates, Inc.,2015."
+        },
+        {
+            "type": "Title",
+            "text": "[35] IlyaSutskever,OriolVinyals,andQuocVVLe. Sequencetosequencelearningwithneural networks. In AdvancesinNeuralInformationProcessingSystems ,pages3104\u20133112,2014."
+        },
+        {
+            "type": "Title",
+            "text": "[36] ChristianSzegedy,VincentVanhoucke,SergeyIoffe,JonathonShlens,andZbigniewWojna. Rethinkingtheinceptionarchitectureforcomputervision. CoRR ,abs/1512.00567,2015."
+        },
+        {
+            "type": "Title",
+            "text": "[37] Vinyals&Kaiser, Koo, Petrov, Sutskever, andHinton. Grammarasaforeignlanguage. In AdvancesinNeuralInformationProcessingSystems ,2015."
+        },
+        {
+            "type": "Title",
+            "text": "[38] Yonghui Wu, Mike Schuster, Zhifeng Chen, Quoc V Le, Mohammad Norouzi, Wolfgang Macherey,MaximKrikun,YuanCao,QinGao,KlausMacherey,etal. Google\u2019sneuralmachine translationsystem: Bridgingthegapbetweenhumanandmachinetranslation. arXivpreprint arXiv:1609.08144 ,2016."
+        },
+        {
+            "type": "Title",
+            "text": "[39] Jie Zhou, Ying Cao, Xuguang Wang, Peng Li, and Wei Xu. Deep recurrent models with fast-forwardconnectionsforneuralmachinetranslation. CoRR ,abs/1606.04199,2016."
+        },
+        {
+            "type": "Title",
+            "text": "[40] Muhua Zhu, Yue Zhang, Wenliang Chen, Min Zhang, and Jingbo Zhu. Fast and accurate shift-reduceconstituentparsing. In Proceedingsofthe51stAnnualMeetingoftheACL(Volume 1: LongPapers) ,pages434\u2013443.ACL,August2013."
+        },
+        {
+            "type": "Title",
+            "text": "12"
+        }
+    ],
+    "Page 13": [
+        {
+            "type": "Title",
+            "text": "Input-Input Layer5 AttentionVisualizations"
+        },
+        {
+            "type": "Title",
+            "text": "Figure 3: An example of the attention mechanism following long-distance dependencies in the encoderself-attentioninlayer5of6. Manyoftheattentionheadsattendtoadistantdependencyof theverb\u2018making\u2019,completingthephrase\u2018making...moredifficult\u2019. Attentionshereshownonlyfor theword\u2018making\u2019. Differentcolorsrepresentdifferentheads. Bestviewedincolor."
+        },
+        {
+            "type": "Title",
+            "text": "13 tItI s i"
+        },
+        {
+            "type": "Title",
+            "text": "s i n i"
+        },
+        {
+            "type": "Title",
+            "text": "n i s i h t"
+        },
+        {
+            "type": "Title",
+            "text": "s i h t t i r i p s"
+        },
+        {
+            "type": "Title",
+            "text": "t i r i p s t ah tt ah t aa y t i r o j a m"
+        },
+        {
+            "type": "Title",
+            "text": "y t i r o j a m f o"
+        },
+        {
+            "type": "Title",
+            "text": "f o na c i r e m A"
+        },
+        {
+            "type": "Title",
+            "text": "na c i r e m A s t ne m n r e v og"
+        },
+        {
+            "type": "Title",
+            "text": "s t ne m n r e v og e v ahe v ah de ss apde ss ap w en"
+        },
+        {
+            "type": "Title",
+            "text": "w en s w a l"
+        },
+        {
+            "type": "Title",
+            "text": "s w a l e c n i s"
+        },
+        {
+            "type": "Title",
+            "text": "e c n i s 90029002 gn i k a m"
+        },
+        {
+            "type": "Title",
+            "text": "gn i k a m eh t"
+        },
+        {
+            "type": "Title",
+            "text": "eh t no i t a r t s i ge r"
+        },
+        {
+            "type": "Title",
+            "text": "no i t a r t s i ge r r o"
+        },
+        {
+            "type": "Title",
+            "text": "r o gn i t o v"
+        },
+        {
+            "type": "Title",
+            "text": "gn i t o v ss e c o r p"
+        },
+        {
+            "type": "Title",
+            "text": "ss e c o r p e r o m"
+        },
+        {
+            "type": "Title",
+            "text": "e r o m t l u c i ff i d"
+        },
+        {
+            "type": "Title",
+            "text": "t l u c i ff i d .. > S O E <> S O E < > dap <> dap < > dap <> dap < > dap <> dap < > dap <> dap < > dap <> dap < > dap <> dap <"
+        }
+    ],
+    "Page 14": [
+        {
+            "type": "Title",
+            "text": "Input-Input Layer5"
+        },
+        {
+            "type": "Title",
+            "text": "Input-Input Layer5"
+        },
+        {
+            "type": "Title",
+            "text": "Figure4: Twoattentionheads,alsoinlayer5of6,apparentlyinvolvedinanaphoraresolution. Top: Fullattentionsforhead5. Bottom: Isolatedattentionsfromjusttheword\u2018its\u2019forattentionheads5 and6. Notethattheattentionsareverysharpforthisword."
+        },
+        {
+            "type": "Title",
+            "text": "14 eh T"
+        },
+        {
+            "type": "Title",
+            "text": "eh T"
+        },
+        {
+            "type": "Title",
+            "text": "eh T"
+        },
+        {
+            "type": "Title",
+            "text": "eh T w aL"
+        },
+        {
+            "type": "Title",
+            "text": "w aL"
+        },
+        {
+            "type": "Title",
+            "text": "w aL"
+        },
+        {
+            "type": "Title",
+            "text": "w aL lli w"
+        },
+        {
+            "type": "Title",
+            "text": "lli w"
+        },
+        {
+            "type": "Title",
+            "text": "lli w"
+        },
+        {
+            "type": "Title",
+            "text": "lli w r e v en"
+        },
+        {
+            "type": "Title",
+            "text": "r e v en"
+        },
+        {
+            "type": "Title",
+            "text": "r e v en"
+        },
+        {
+            "type": "Title",
+            "text": "r e v en eb"
+        },
+        {
+            "type": "Title",
+            "text": "eb"
+        },
+        {
+            "type": "Title",
+            "text": "ebe b t c e f r ep"
+        },
+        {
+            "type": "Title",
+            "text": "t c e f r ep"
+        },
+        {
+            "type": "Title",
+            "text": "t c e f r ep"
+        },
+        {
+            "type": "Title",
+            "text": "t c e f r ep ,,"
+        },
+        {
+            "type": "Title",
+            "text": ",, t ub"
+        },
+        {
+            "type": "Title",
+            "text": "t ub"
+        },
+        {
+            "type": "Title",
+            "text": "t ub"
+        },
+        {
+            "type": "Title",
+            "text": "t u b s t i"
+        },
+        {
+            "type": "Title",
+            "text": "s t i"
+        },
+        {
+            "type": "Title",
+            "text": "s t i"
+        },
+        {
+            "type": "Title",
+            "text": "s t i no i t a c il ppa"
+        },
+        {
+            "type": "Title",
+            "text": "no i t a c il ppa"
+        },
+        {
+            "type": "Title",
+            "text": "no i t a c il ppan o i t a c il ppa d l uoh s"
+        },
+        {
+            "type": "Title",
+            "text": "d l uoh s"
+        },
+        {
+            "type": "Title",
+            "text": "d l uoh s"
+        },
+        {
+            "type": "Title",
+            "text": "d l uoh s eb"
+        },
+        {
+            "type": "Title",
+            "text": "eb"
+        },
+        {
+            "type": "Title",
+            "text": "ebe b t s u j"
+        },
+        {
+            "type": "Title",
+            "text": "t s u j"
+        },
+        {
+            "type": "Title",
+            "text": "t s u j"
+        },
+        {
+            "type": "Title",
+            "text": "t s u j -"
+        },
+        {
+            "type": "Title",
+            "text": "-"
+        },
+        {
+            "type": "Title",
+            "text": "-- s i h t"
+        },
+        {
+            "type": "Title",
+            "text": "s i h t"
+        },
+        {
+            "type": "Title",
+            "text": "s i h t"
+        },
+        {
+            "type": "Title",
+            "text": "s i h t s i"
+        },
+        {
+            "type": "Title",
+            "text": "s i"
+        },
+        {
+            "type": "Title",
+            "text": "s i"
+        },
+        {
+            "type": "Title",
+            "text": "s i t ah w"
+        },
+        {
+            "type": "Title",
+            "text": "t ah w"
+        },
+        {
+            "type": "Title",
+            "text": "t ah w"
+        },
+        {
+            "type": "Title",
+            "text": "t a h w e w"
+        },
+        {
+            "type": "Title",
+            "text": "e w"
+        },
+        {
+            "type": "Title",
+            "text": "e w"
+        },
+        {
+            "type": "Title",
+            "text": "e w e r a"
+        },
+        {
+            "type": "Title",
+            "text": "e r a"
+        },
+        {
+            "type": "Title",
+            "text": "e r ae r a gn i ss i m"
+        },
+        {
+            "type": "Title",
+            "text": "gn i ss i m"
+        },
+        {
+            "type": "Title",
+            "text": "gn i s s i m"
+        },
+        {
+            "type": "Title",
+            "text": "gn i ss i m ,,"
+        },
+        {
+            "type": "Title",
+            "text": ",, n i"
+        },
+        {
+            "type": "Title",
+            "text": "n i"
+        },
+        {
+            "type": "Title",
+            "text": "n i"
+        },
+        {
+            "type": "Title",
+            "text": "n i y m"
+        },
+        {
+            "type": "Title",
+            "text": "y m"
+        },
+        {
+            "type": "Title",
+            "text": "y m"
+        },
+        {
+            "type": "Title",
+            "text": "y m no i n i po"
+        },
+        {
+            "type": "Title",
+            "text": "no i n i po"
+        },
+        {
+            "type": "Title",
+            "text": "no i n i pon o i n i po .."
+        },
+        {
+            "type": "Title",
+            "text": ".. > S O E <"
+        },
+        {
+            "type": "Title",
+            "text": "> S O E <"
+        },
+        {
+            "type": "Title",
+            "text": "> S O E <> S O E < > dap <"
+        },
+        {
+            "type": "Title",
+            "text": "> dap <"
+        },
+        {
+            "type": "Title",
+            "text": "> dap <> d ap <"
+        }
+    ],
+    "Page 15": [
+        {
+            "type": "Title",
+            "text": "Input-Input Layer5"
+        },
+        {
+            "type": "Title",
+            "text": "Input-Input Layer5"
+        },
+        {
+            "type": "Title",
+            "text": "Figure5: Manyoftheattentionheadsexhibitbehaviourthatseemsrelatedtothestructureofthe sentence. Wegivetwosuchexamplesabove,fromtwodifferentheadsfromtheencoderself-attention atlayer5of6. Theheadsclearlylearnedtoperformdifferenttasks."
+        },
+        {
+            "type": "Title",
+            "text": "15 eh T"
+        },
+        {
+            "type": "Title",
+            "text": "eh T"
+        },
+        {
+            "type": "Title",
+            "text": "eh T"
+        },
+        {
+            "type": "Title",
+            "text": "e h T w aL"
+        },
+        {
+            "type": "Title",
+            "text": "w aL"
+        },
+        {
+            "type": "Title",
+            "text": "w aL"
+        },
+        {
+            "type": "Title",
+            "text": "w a L lli w"
+        },
+        {
+            "type": "Title",
+            "text": "lli w"
+        },
+        {
+            "type": "Title",
+            "text": "lli w"
+        },
+        {
+            "type": "Title",
+            "text": "lli w r e v en"
+        },
+        {
+            "type": "Title",
+            "text": "r e v en"
+        },
+        {
+            "type": "Title",
+            "text": "r e v en"
+        },
+        {
+            "type": "Title",
+            "text": "r e v en eb"
+        },
+        {
+            "type": "Title",
+            "text": "eb"
+        },
+        {
+            "type": "Title",
+            "text": "ebe b t c e f r ep"
+        },
+        {
+            "type": "Title",
+            "text": "t c e f r ep"
+        },
+        {
+            "type": "Title",
+            "text": "t c e f r ep"
+        },
+        {
+            "type": "Title",
+            "text": "t c e f r e p ,"
+        },
+        {
+            "type": "Title",
+            "text": ","
+        },
+        {
+            "type": "Title",
+            "text": ","
+        },
+        {
+            "type": "Title",
+            "text": ", t ub"
+        },
+        {
+            "type": "Title",
+            "text": "t ub"
+        },
+        {
+            "type": "Title",
+            "text": "t ub"
+        },
+        {
+            "type": "Title",
+            "text": "t u b s t i"
+        },
+        {
+            "type": "Title",
+            "text": "s t i"
+        },
+        {
+            "type": "Title",
+            "text": "s t i"
+        },
+        {
+            "type": "Title",
+            "text": "s t i no i t a c il ppa"
+        },
+        {
+            "type": "Title",
+            "text": "no i t a c il ppa"
+        },
+        {
+            "type": "Title",
+            "text": "no i t a c il ppano i t a c il pp a d l uoh s"
+        },
+        {
+            "type": "Title",
+            "text": "d l uoh s"
+        },
+        {
+            "type": "Title",
+            "text": "d l uoh s"
+        },
+        {
+            "type": "Title",
+            "text": "d l uo h s eb"
+        },
+        {
+            "type": "Title",
+            "text": "eb"
+        },
+        {
+            "type": "Title",
+            "text": "ebe b t s u j"
+        },
+        {
+            "type": "Title",
+            "text": "t s u j"
+        },
+        {
+            "type": "Title",
+            "text": "t s u j"
+        },
+        {
+            "type": "Title",
+            "text": "t s u j --"
+        },
+        {
+            "type": "Title",
+            "text": "-"
+        },
+        {
+            "type": "Title",
+            "text": "- s i h t"
+        },
+        {
+            "type": "Title",
+            "text": "s i h t"
+        },
+        {
+            "type": "Title",
+            "text": "s i h t"
+        },
+        {
+            "type": "Title",
+            "text": "s i h t s i"
+        },
+        {
+            "type": "Title",
+            "text": "s i"
+        },
+        {
+            "type": "Title",
+            "text": "s i"
+        },
+        {
+            "type": "Title",
+            "text": "s i t ah w"
+        },
+        {
+            "type": "Title",
+            "text": "t ah w"
+        },
+        {
+            "type": "Title",
+            "text": "t ah w"
+        },
+        {
+            "type": "Title",
+            "text": "t a h w e w"
+        },
+        {
+            "type": "Title",
+            "text": "e w"
+        },
+        {
+            "type": "Title",
+            "text": "e w"
+        },
+        {
+            "type": "Title",
+            "text": "e w e r a"
+        },
+        {
+            "type": "Title",
+            "text": "e r a"
+        },
+        {
+            "type": "Title",
+            "text": "e r ae r a gn i ss i m"
+        },
+        {
+            "type": "Title",
+            "text": "gn i ss i m"
+        },
+        {
+            "type": "Title",
+            "text": "gn i ss i m"
+        },
+        {
+            "type": "Title",
+            "text": "g n i ss i m ,"
+        },
+        {
+            "type": "Title",
+            "text": ","
+        },
+        {
+            "type": "Title",
+            "text": ","
+        },
+        {
+            "type": "Title",
+            "text": ", n i"
+        },
+        {
+            "type": "Title",
+            "text": "n i"
+        },
+        {
+            "type": "Title",
+            "text": "n i"
+        },
+        {
+            "type": "Title",
+            "text": "n i y m"
+        },
+        {
+            "type": "Title",
+            "text": "y m"
+        },
+        {
+            "type": "Title",
+            "text": "y m"
+        },
+        {
+            "type": "Title",
+            "text": "y m no i n i po"
+        },
+        {
+            "type": "Title",
+            "text": "no i n i po"
+        },
+        {
+            "type": "Title",
+            "text": "no i n i pono i n i po ."
+        },
+        {
+            "type": "Title",
+            "text": "."
+        },
+        {
+            "type": "Title",
+            "text": "."
+        },
+        {
+            "type": "Title",
+            "text": ". > S O E <> S O E <"
+        },
+        {
+            "type": "Title",
+            "text": "> S O E <> S O E < > dap <> dap <"
+        },
+        {
+            "type": "Title",
+            "text": "> dap <> da p <"
+        }
+    ]
+}
