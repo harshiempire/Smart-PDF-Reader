@@ -2,9 +2,7 @@ import fitz  # PyMuPDF
 import json
 import numpy as np
 from collections import Counter
-from collections import Counter
-import os
-
+from scipy.cluster.vq import kmeans, vq
 
 def classify_textblock(block, common_font_size):
     """Classify text block as Title or Paragraph using PyMuPDF metadata."""
@@ -27,32 +25,22 @@ def classify_textblock(block, common_font_size):
         return "Title"
     return "Paragraph"
 
-
-def extract_images(page, page_num, output_dir="extracted_images"):
-    """Extract images from the given page and save them."""
-    os.makedirs(output_dir, exist_ok=True)
-    images_info = []
+def detect_columns(blocks, num_columns=2):
+    """Detect columns based on x-coordinates using k-means clustering."""
+    x_positions = [block["bbox"][0] for block in blocks]  # Get x0 positions
+    if len(set(x_positions)) <= 1:
+        return [0]  # Single column case
     
-    for img_index, img in enumerate(page.get_images(full=True)):
-        xref = img[0]  # Image XREF
-        base_image = page.parent.extract_image(xref)
-        img_bytes = base_image["image"]
-        img_ext = base_image["ext"]
-        
-        img_filename = f"{output_dir}/page_{page_num + 1}_img_{img_index + 1}.{img_ext}"
-        with open(img_filename, "wb") as img_file:
-            img_file.write(img_bytes)
-        
-        # Store metadata about the image
-        images_info.append({
-            "image_path": img_filename,
-            "bbox": img[1]  # Image bounding box (x0, y0, x1, y1)
-        })
+    # Use k-means clustering to find column positions
+    centroids, _ = kmeans(np.array(x_positions).reshape(-1, 1).astype(float), num_columns)
+    column_labels, _ = vq(np.array(x_positions).reshape(-1, 1), centroids)
     
-    return images_info
+    # Sort by x position to maintain left-to-right order
+    sorted_centroids = sorted(centroids.flatten())
+    column_map = {centroid: idx for idx, centroid in enumerate(sorted_centroids)}
+    return [column_map[centroids[label][0]] for label in column_labels]
 
-
-def extract_text_pymupdf(pdf_path):
+def extract_text_pymupdf(pdf_path, num_columns=2):
     doc = fitz.open(pdf_path)
     structured_text = {}
 
@@ -63,10 +51,16 @@ def extract_text_pymupdf(pdf_path):
         # Identify the most common font size on the page (assumed body text size)
         all_font_sizes = [span["size"] for block in text_dict["blocks"] for line in block.get("lines", []) for span in line.get("spans", [])]
         common_font_size = Counter(all_font_sizes).most_common(1)[0][0] if all_font_sizes else 10  # Default fallback
+
+        # print(all_font_sizes)
         
-        for block in text_dict["blocks"]:
+        # Detect columns
+        column_assignments = detect_columns(text_dict["blocks"], num_columns)
+        
+        blocks_with_columns = []
+        for block, column in zip(text_dict["blocks"], column_assignments):
             block_text = []
-            
+            bbox = block["bbox"]
             for line in block.get("lines", []):
                 for span in line.get("spans", []):
                     block_text.append(span["text"].strip())
@@ -74,24 +68,26 @@ def extract_text_pymupdf(pdf_path):
             text = " ".join(block_text)
             if text:
                 text_type = classify_textblock(block, common_font_size)
-                structured_page.append({"type": text_type, "text": text})
+                blocks_with_columns.append({
+                    "type": text_type,
+                    "text": text,
+                    "column": column,
+                    "y": bbox[1]  # Use y0 for sorting within the column
+                })
+        print(blocks_with_columns)
+        # Sort blocks by column and then by y-position within each column
+        sorted_blocks = sorted(blocks_with_columns, key=lambda b: (b["column"], b["y"]))
+        structured_page = [{"type": b["type"], "text": b["text"]} for b in sorted_blocks]
         
-        # Extract images on the page
-        images_info = extract_images(page, page_num)
-        
-        # Store results for the page
-        structured_text[f"Page {page_num + 1}"] = {
-            "text_blocks": structured_page,
-            "images": images_info
-        }
-    
+        structured_text[f"Page {page_num + 1}"] = structured_page
+
     return structured_text
 
 
 # Run extraction
-# pdf_path = "somatosensory.pdf"
+pdf_path = "somatosensory.pdf"
 # pdf_path = "sample01.pdf"
-pdf_path = "1706.03762v7.pdf"
+# pdf_path = "1706.03762v7.pdf"
 structured_output = extract_text_pymupdf(pdf_path)
 
 # Save output
