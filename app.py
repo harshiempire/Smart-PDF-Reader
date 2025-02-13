@@ -123,6 +123,9 @@ def process_pdf(pdf_path, conf_threshold, iou_threshold):
             json_output = process_pdf_pages(pdf_images, model_outputs['bboxes'], 
                                           model_outputs['classes'], model_outputs['scores'], 
                                           id_to_names)
+            
+            json_text_output = input()
+
         else:
             json_output = None
 

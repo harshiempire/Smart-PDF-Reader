@@ -2,6 +2,8 @@
 
 English | [简体中文](./README-zh_CN.md)
 
+`brew install popper`
+
 
 <h1>DocLayout-YOLO: Enhancing Document Layout Analysis through Diverse Synthetic Data and Global-to-Local Adaptive Perception</h1>
 
