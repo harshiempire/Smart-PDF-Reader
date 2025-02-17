@@ -124,7 +124,10 @@ def process_pdf(pdf_path, conf_threshold, iou_threshold):
                                           model_outputs['classes'], model_outputs['scores'], 
                                           id_to_names)
             
-            json_text_output = input()
+            # Extract text from the detected layout
+            from text_extraction import get_text
+            json_text_output = get_text(json_output, pdf_path)
+            json_output['text_content'] = json_text_output
 
         else:
             json_output = None
