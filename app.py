@@ -138,7 +138,7 @@ def process_pdf(pdf_path, conf_threshold, iou_threshold):
         return [], None
 
 
-def recognize_image(input_img, conf_threshold, iou_threshold):
+def recognize_image(input_img, model, conf_threshold, iou_threshold):
     print("Starting image recognition...")
     print(f"Input image shape: {input_img.shape if hasattr(input_img, 'shape') else 'Not a numpy array'}")
     print(f"Confidence threshold: {conf_threshold}, IOU threshold: {iou_threshold}")
