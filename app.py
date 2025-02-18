@@ -153,16 +153,15 @@ def process_pdf(pdf_path, conf_threshold, iou_threshold):
                     continue
 
         # Generate structured JSON output
-        if pdf_images and model_outputs["bboxes"]:
-            json_output = process_pdf_pages(
-                pdf_images,
-                model_outputs["bboxes"],
-                model_outputs["classes"],
-                model_outputs["scores"],
-                id_to_names,
-            )
-
-            json_text_output = input()
+        if pdf_images and model_outputs['bboxes']:
+            json_output = process_pdf_pages(pdf_images, model_outputs['bboxes'], 
+                                          model_outputs['classes'], model_outputs['scores'], 
+                                          id_to_names)
+            
+            # Extract text from the detected layout
+            from text_extraction import get_text
+            json_text_output = get_text(json_output, pdf_path)
+            json_output['text_content'] = json_text_output
 
         else:
             json_output = None
@@ -173,7 +172,7 @@ def process_pdf(pdf_path, conf_threshold, iou_threshold):
         return [], None
 
 
-def recognize_image(input_img, conf_threshold, iou_threshold):
+def recognize_image(input_img, model, conf_threshold, iou_threshold):
     print("Starting image recognition...")
     print(
         f"Input image shape: {input_img.shape if hasattr(input_img, 'shape') else 'Not a numpy array'}"
