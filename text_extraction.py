@@ -231,13 +231,68 @@ def extract_text_with_easyocr(cropped_image):
         print(f"Error in text extraction: {str(e)}")
         return None
 
+def sort_elements_by_reading_order(elements, page_width, page_height):
+    """Sort elements by reading order (top-to-bottom, left-to-right within columns)"""
+    if not elements:
+        return []
+
+    # Calculate element densities for better column detection
+    x_centers = [((elem['bbox']['x1'] + elem['bbox']['x2']) / 2) / page_width for elem in elements]
+    
+    # Use histogram to identify column centers
+    hist, bin_edges = np.histogram(x_centers, bins=20)
+    peaks = []
+    threshold = max(hist) * 0.3  # Adjust threshold for column detection
+    
+    for i in range(1, len(hist) - 1):
+        if hist[i] > threshold and hist[i] >= hist[i-1] and hist[i] >= hist[i+1]:
+            column_center = (bin_edges[i] + bin_edges[i+1]) / 2
+            peaks.append(column_center)
+    
+    # If no clear columns detected, check for regular spacing
+    if len(peaks) <= 1:
+        # Check if elements form regular columns
+        x_starts = sorted(set([elem['bbox']['x1'] for elem in elements]))
+        x_gaps = [x_starts[i+1] - x_starts[i] for i in range(len(x_starts)-1)]
+        
+        if x_gaps:
+            avg_gap = sum(x_gaps) / len(x_gaps)
+            std_gap = np.std(x_gaps)
+            
+            # If gaps are regular (low standard deviation), use them for column detection
+            if std_gap < avg_gap * 0.3:  # Threshold for gap regularity
+                peaks = [x/page_width for x in x_starts if x > page_width * 0.1]  # Ignore margins
+    
+    # Assign elements to columns
+    columns = [[] for _ in range(max(1, len(peaks)))]
+    
+    for elem in elements:
+        center_x = (elem['bbox']['x1'] + elem['bbox']['x2']) / 2
+        # Find closest column
+        if peaks:
+            col_idx = min(range(len(peaks)), 
+                         key=lambda i: abs(center_x/page_width - peaks[i]))
+            columns[col_idx].append(elem)
+        else:
+            columns[0].append(elem)
+    
+    # Sort elements within each column by vertical position
+    for column in columns:
+        column.sort(key=lambda x: x['bbox']['y1'])
+    
+    # Merge columns left-to-right
+    sorted_elements = []
+    for column in columns:
+        sorted_elements.extend(column)
+    
+    return sorted_elements
+
 def get_text(json_output, page_images):
     """Extract text from different document elements using specialized approaches"""
     print("\nDEBUG: Starting text extraction")
     print(f"DEBUG: Total pages to process: {json_output['document_layout']['total_pages']}")
     extracted_content = []
     
-    # Process each page
     for page_idx, page_image in enumerate(page_images):
         print(f"\nDEBUG: Processing page {page_idx + 1}")
         if page_image is None:
@@ -245,8 +300,13 @@ def get_text(json_output, page_images):
             continue
             
         page_content = []
+        width, height = page_image.size
         elements = json_output['document_layout']['pages'][page_idx]['elements']
         print(f"DEBUG: Found {len(elements)} elements on page {page_idx + 1}")
+        
+        # Sort elements by reading order
+        elements = sort_elements_by_reading_order(elements, width, height)
+        print("DEBUG: Elements sorted by reading order")
         
         # Filter out overlapping elements and handle duplicates
         filtered_elements = []
