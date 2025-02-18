@@ -61,6 +61,17 @@ def process_pdf(pdf_path, conf_threshold, iou_threshold):
                 print("Error: PDF file is empty")
                 return [], None
 
+            # Initialize JSON structure for layout
+            json_output = {
+                'document_layout': {
+                    'total_pages': len(pdf_reader.pages),
+                    'pages': []
+                }
+            }
+
+            # Store page images for text extraction
+            page_images = []
+            
             for page_num in range(len(pdf_reader.pages)):
                 try:
                     print(f"\nDEBUG: Processing page {page_num + 1}")
@@ -96,6 +107,9 @@ def process_pdf(pdf_path, conf_threshold, iou_threshold):
                                 continue
 
                             page_image = images[0]
+                            # Store the page image for later use
+                            page_images.append(page_image)
+                            
                             page_image.save(tmp_file.name)
                             print(f"DEBUG: Saved page {page_num + 1} as temporary image")
                             
@@ -108,6 +122,29 @@ def process_pdf(pdf_path, conf_threshold, iou_threshold):
                                 model_outputs['classes'].append(processed_result['classes'])
                                 model_outputs['scores'].append(processed_result['scores'])
                                 print(f"DEBUG: Successfully processed page {page_num + 1}")
+
+                                # Add page layout information
+                                page_elements = []
+                                for bbox, cls, score in zip(processed_result['bboxes'], 
+                                                          processed_result['classes'], 
+                                                          processed_result['scores']):
+                                    element = {
+                                        'type': id_to_names[int(cls)],
+                                        'confidence': float(score),
+                                        'bbox': {
+                                            'x1': float(bbox[0]),
+                                            'y1': float(bbox[1]),
+                                            'x2': float(bbox[2]),
+                                            'y2': float(bbox[3])
+                                        }
+                                    }
+                                    page_elements.append(element)
+
+                                json_output['document_layout']['pages'].append({
+                                    'page_number': page_num + 1,
+                                    'elements': page_elements
+                                })
+
                         except Exception as page_error:
                             print(f"Error processing page {page_num + 1}: {str(page_error)}")
                             continue
@@ -118,17 +155,11 @@ def process_pdf(pdf_path, conf_threshold, iou_threshold):
                     print(f"Error processing page {page_num + 1}: {str(page_error)}")
                     continue
 
-        # Generate structured JSON output
+        # Extract text using the layout information
         if pdf_images and model_outputs['bboxes']:
-            json_output = process_pdf_pages(pdf_images, model_outputs['bboxes'], 
-                                          model_outputs['classes'], model_outputs['scores'], 
-                                          id_to_names)
-            
-            # Extract text from the detected layout
             from text_extraction import get_text
-            json_text_output = get_text(json_output, pdf_path)
+            json_text_output = get_text(json_output, page_images)
             json_output['text_content'] = json_text_output
-
         else:
             json_output = None
 
@@ -138,7 +169,7 @@ def process_pdf(pdf_path, conf_threshold, iou_threshold):
         return [], None
 
 
-def recognize_image(input_img, model, conf_threshold, iou_threshold):
+def recognize_image(input_img, conf_threshold, iou_threshold):
     print("Starting image recognition...")
     print(f"Input image shape: {input_img.shape if hasattr(input_img, 'shape') else 'Not a numpy array'}")
     print(f"Confidence threshold: {conf_threshold}, IOU threshold: {iou_threshold}")

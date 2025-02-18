@@ -101,7 +101,7 @@ def test_text_extraction(image_path):
 
 def main():
     # Example usage with a test image from assets
-    test_image = 'assets/example/textbook.jpg'  # Update with actual test image path
+    test_image = '/Users/harshithalle/Smart-PDF-reader/tmp/0ac948d59657ebe3a8c28477661bd282321f56f1319df0254c54a4bb1e89da3d/H._S._M._Coxeter_Samuel_L._Greitzer_Geometry_Rez-lib.org.pdf_160 1.jpg'  # Update with actual test image path
     
     results = test_text_extraction(test_image)
     if results:

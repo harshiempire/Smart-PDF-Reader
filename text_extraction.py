@@ -168,21 +168,23 @@ def extract_table_text(cropped_image):
         if cropped_image is None:
             print("DEBUG: Cannot extract table from None image")
             return None
-        # Resize image if needed
+            
         print("DEBUG: Resizing image for table OCR")
         resized_image = resize_for_ocr(cropped_image)
         if resized_image is None:
             print("DEBUG: Failed to resize image for table OCR")
             return None
             
-        print("DEBUG: Configuring Tesseract for table recognition")
+        print("DEBUG: Using Tesseract for table recognition")
         custom_config = r'--oem 3 --psm 6 -c preserve_interword_spaces=1'
         extracted_text = pytesseract.image_to_string(resized_image, config=custom_config)
+        
         if extracted_text:
-            print(f"DEBUG: Successfully extracted table text: {extracted_text[:50]}...")
+            print(f"DEBUG: Successfully extracted table text with Tesseract: {extracted_text[:50]}...")
         else:
             print("DEBUG: No text extracted from table image")
         return extracted_text.strip() if extracted_text else None
+
     except Exception as e:
         print(f"Error in table extraction: {str(e)}")
         return None
@@ -229,19 +231,17 @@ def extract_text_with_easyocr(cropped_image):
         print(f"Error in text extraction: {str(e)}")
         return None
 
-def get_text(json_output, pdf_path):
+def get_text(json_output, page_images):
     """Extract text from different document elements using specialized approaches"""
-    print(f"\nDEBUG: Starting text extraction for PDF: {pdf_path}")
+    print("\nDEBUG: Starting text extraction")
     print(f"DEBUG: Total pages to process: {json_output['document_layout']['total_pages']}")
     extracted_content = []
     
     # Process each page
-    for page_idx in range(json_output['document_layout']['total_pages']):
+    for page_idx, page_image in enumerate(page_images):
         print(f"\nDEBUG: Processing page {page_idx + 1}")
-        # Extract page image once
-        page_image = extract_page_image(pdf_path, page_idx)
         if page_image is None:
-            print(f"DEBUG: Skipping page {page_idx + 1} due to failed image extraction")
+            print(f"DEBUG: Skipping page {page_idx + 1} due to missing image")
             continue
             
         page_content = []
