@@ -181,29 +181,63 @@ def extract_formula_text(cropped_image):
 
 
 def extract_table_text(cropped_image):
-    """Extract text from table using Tesseract with table-optimized settings"""
+    """Extract text from table using img2table with Tesseract fallback"""
     print("\nDEBUG: Starting table text extraction")
     try:
         if cropped_image is None:
             print("DEBUG: Cannot extract table from None image")
             return None
 
-        print("DEBUG: Resizing image for table OCR")
+        # Save the cropped image temporarily
+        temp_path = "temp_table.png"
+        cropped_image.save(temp_path)
+
+        try:
+            # Try img2table first
+            print("DEBUG: Attempting table extraction with img2table")
+            from img2table.document import Image
+            from img2table.ocr import TesseractOCR
+
+            ocr = TesseractOCR(n_threads=1, lang="eng")
+            img = Image(src=temp_path)
+            
+            extracted_tables = img.extract_tables(
+                ocr=ocr,
+                implicit_rows=False,
+                borderless_tables=True,
+                min_confidence=50
+            )
+
+            if extracted_tables:
+                print("DEBUG: Successfully extracted table with img2table")
+                # Convert table to text format
+                table_data = extracted_tables[0].df.to_numpy()
+                formatted_text = []
+                for row in table_data:
+                    formatted_text.append(" | ".join(str(cell) for cell in row))
+                extracted_text = "\n".join(formatted_text)
+                return extracted_text.strip()
+
+            print("DEBUG: No tables found with img2table, falling back to Tesseract")
+        except Exception as table_error:
+            print(f"DEBUG: img2table extraction failed: {str(table_error)}, falling back to Tesseract")
+        finally:
+            # Clean up temporary file
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+        # Fallback to Tesseract
+        print("DEBUG: Using Tesseract for table recognition")
         resized_image = resize_for_ocr(cropped_image)
         if resized_image is None:
             print("DEBUG: Failed to resize image for table OCR")
             return None
 
-        print("DEBUG: Using Tesseract for table recognition")
         custom_config = r"--oem 3 --psm 6 -c preserve_interword_spaces=1"
-        extracted_text = pytesseract.image_to_string(
-            resized_image, config=custom_config
-        )
+        extracted_text = pytesseract.image_to_string(resized_image, config=custom_config)
 
         if extracted_text:
-            print(
-                f"DEBUG: Successfully extracted table text with Tesseract: {extracted_text[:50]}..."
-            )
+            print(f"DEBUG: Successfully extracted table text with Tesseract: {extracted_text[:50]}...")
         else:
             print("DEBUG: No text extracted from table image")
         return extracted_text.strip() if extracted_text else None
@@ -441,10 +475,6 @@ def get_text(json_output, page_images):
 
             # Crop image for the current element
             cropped_image = crop_image(page_image, bbox_tuple)
-            cropped_image_filename = (
-                f"cropped_images/{element_type}_{element_idx + 1}.png"
-            )
-            cropped_image.save(cropped_image_filename)
             if cropped_image is None:
                 print(f"DEBUG: Failed to crop image for element {element_idx + 1}")
                 continue

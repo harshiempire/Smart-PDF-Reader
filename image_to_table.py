@@ -4,7 +4,7 @@ from img2table.ocr import TesseractOCR
 ocr = TesseractOCR(n_threads=1, lang="eng")
 
 # Instantiation of the image
-img = Image(src="table_14.png")
+img = Image(src="best_test_table.png")
 
 # Table identification
 
