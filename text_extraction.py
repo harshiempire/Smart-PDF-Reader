@@ -11,6 +11,7 @@ import io
 import os
 from PIL import Image
 from app import id_to_names
+import time
 
 def extract_page_image(pdf_path, page_num):
     """Extract image from PDF page"""
@@ -70,6 +71,12 @@ def crop_image(page_image, bbox):
         print("DEBUG: Cannot crop None image")
         return None
     try:
+        # Create output directory if it doesn't exist
+        output_dir = '/Users/harshithalle/Smart-PDF-Reader/cropped_images'
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+            print(f"DEBUG: Created output directory: {output_dir}")
+
         # Get original dimensions
         width, height = page_image.size
         print(f"DEBUG: Original image dimensions for cropping: {width}x{height}")
@@ -111,6 +118,13 @@ def crop_image(page_image, bbox):
         
         print(f"DEBUG: Final crop box coordinates: {crop_box}")
         cropped = page_image.crop(crop_box)
+        
+        # Save the cropped image with unique name
+        timestamp = int(time.time() * 1000)
+        crop_filename = f"crop_{timestamp}_{crop_box[0]}_{crop_box[1]}.png"
+        crop_path = os.path.join(output_dir, crop_filename)
+        cropped.save(crop_path)
+        print(f"DEBUG: Saved cropped image to: {crop_path}")
         
         # Resize if needed while maintaining aspect ratio
         crop_width = crop_box[2] - crop_box[0]

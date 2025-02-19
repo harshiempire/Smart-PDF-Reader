@@ -85,31 +85,31 @@ bbox_1 = bbox["document_layout"]["pages"][0]["elements"][0]["bbox"]
 from pdf2image import convert_from_path
 import cv2
 
-pages = convert_from_path('sample.pdf', 500)
+pages = convert_from_path('basic-text.pdf', 500)
 for count,page in enumerate(pages):
-    # page.save(f"page{count}.jpg", "JPEG")
-    image_width = page.width
-    image_height = page.height
-    # box_xmin, box_ymin, box_xmax, box_ymax = bbox_1
-    box_xmin = int(bbox_1['x1']) 
-    box_xmax = int(bbox_1['x2']) 
-    box_ymin = int(bbox_1['y1']) 
-    box_ymax = int(bbox_1['y2']) 
+    page.save(f"page{count}.jpg", "JPEG")
+    # image_width = page.width
+    # image_height = page.height
+    # # box_xmin, box_ymin, box_xmax, box_ymax = bbox_1
+    # box_xmin = int(bbox_1['x1']) 
+    # box_xmax = int(bbox_1['x2']) 
+    # box_ymin = int(bbox_1['y1']) 
+    # box_ymax = int(bbox_1['y2']) 
 
 
-    print(box_xmin, box_ymin, box_xmax, box_ymax)
-    if  int( box_xmin ) < 0:
-        box_xmin = 0
+    # print(box_xmin, box_ymin, box_xmax, box_ymax)
+    # if  int( box_xmin ) < 0:
+    #     box_xmin = 0
                         
-    if int( box_ymin ) < 0:
-        box_ymin = 0
+    # if int( box_ymin ) < 0:
+    #     box_ymin = 0
 
-    if int( box_xmax ) > image_width:
-        box_xmax = image_width
+    # if int( box_xmax ) > image_width:
+    #     box_xmax = image_width
 
-    if int( box_ymax ) > image_height:
-        box_ymax = image_height
+    # if int( box_ymax ) > image_height:
+    #     box_ymax = image_height
 
-    img = cv2.imread("page0.jpg", cv2.IMREAD_GRAYSCALE) 
-    crop = img[box_xmin:box_ymax, box_ymin:box_xmax]
-    cv2.imwrite("crop.jpg", crop)    
+    # img = cv2.imread("page0.jpg", cv2.IMREAD_GRAYSCALE) 
+    # crop = img[box_xmin:box_ymax, box_ymin:box_xmax]
+    # cv2.imwrite("crop.jpg", crop)    

@@ -5,11 +5,14 @@ import pytesseract
 import easyocr
 import torch
 from text_extraction import resize_for_ocr, crop_image, extract_table_text, extract_formula_text, extract_text_with_easyocr
-from app import recognize_image, id_to_names
+from app import  id_to_names
 from doclayout_yolo import YOLO
+from visualization import visualize_bbox
+import torchvision
 
 # Initialize model
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+# device = 'mps'
 print(f"Using device: {device}")
 
 # Load YOLOv10 model with correct weights
@@ -21,6 +24,49 @@ if not os.path.exists(model_path):
     raise FileNotFoundError(f"Model file not found at {model_path}. Please ensure you have downloaded the model file and placed it in the correct location.")
 
 model = YOLOv10(model_path)  # load the official model
+
+def recognize_image(input_img, model, conf_threshold, iou_threshold):
+    print("Starting image recognition...")
+    print(
+        f"Input image shape: {input_img.shape if hasattr(input_img, 'shape') else 'Not a numpy array'}"
+    )
+    print(f"Confidence threshold: {conf_threshold}, IOU threshold: {iou_threshold}")
+
+    det_res = model.predict(
+        input_img,
+        imgsz=1024,
+        conf=conf_threshold,
+        device=device,
+    )[0]
+    print("\nDetection results:")
+    print(f"Number of detections: {len(det_res)}")
+
+    boxes = det_res.__dict__["boxes"].xyxy
+    classes = det_res.__dict__["boxes"].cls
+    scores = det_res.__dict__["boxes"].conf
+
+    indices = torchvision.ops.nms(
+        boxes=torch.Tensor(boxes),
+        scores=torch.Tensor(scores),
+        iou_threshold=iou_threshold,
+    )
+    boxes, scores, classes = boxes[indices], scores[indices], classes[indices]
+
+    if len(boxes.shape) == 1:
+        boxes = np.expand_dims(boxes, 0)
+        scores = np.expand_dims(scores, 0)
+        classes = np.expand_dims(classes, 0)
+
+    # Create visualization
+    vis_result = visualize_bbox(input_img, boxes, classes, scores, id_to_names)
+
+    # Add detection results to the output
+    vis_result["bboxes"] = boxes
+    vis_result["classes"] = classes
+    vis_result["scores"] = scores
+
+    return vis_result
+
 
 # Pass model to recognize_image function
 def test_text_extraction(image_path):
@@ -101,7 +147,7 @@ def test_text_extraction(image_path):
 
 def main():
     # Example usage with a test image from assets
-    test_image = 'assets/example/textbook.jpg'  # Update with actual test image path
+    test_image = 'page0.jpg'  # Update with actual test image path
     
     results = test_text_extraction(test_image)
     if results:
