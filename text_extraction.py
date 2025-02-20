@@ -1,37 +1,9 @@
-import base64
-import io
-import json
 import os
 
 import easyocr
-import fitz
 import numpy as np
-import pdf2image
-import pdfplumber
 import pytesseract
-import requests
 from PIL import Image
-
-from app import id_to_names
-
-
-def extract_page_image(pdf_path, page_num):
-    """Extract image from PDF page"""
-    print(
-        f"\nDEBUG: Attempting to extract image from page {page_num + 1} of {pdf_path}"
-    )
-    try:
-        images = pdf2image.convert_from_path(
-            pdf_path, first_page=page_num + 1, last_page=page_num + 1
-        )
-        if not images:
-            print(f"DEBUG: No images extracted from page {page_num + 1}")
-            return None
-        print(f"DEBUG: Successfully extracted image from page {page_num + 1}")
-        return images[0]
-    except Exception as e:
-        print(f"Error extracting page image: {str(e)}")
-        return None
 
 
 def resize_for_ocr(image):
@@ -45,7 +17,6 @@ def resize_for_ocr(image):
         print(f"DEBUG: Original image dimensions: {width}x{height}")
 
         # Define target dimensions that work well with OCR
-        target_dpi = 300  # Standard DPI for OCR
         max_dimension = 4000  # Maximum dimension to ensure good OCR performance
         min_dimension = 1000  # Minimum dimension to maintain text readability
 
@@ -148,29 +119,39 @@ def crop_image(page_image, bbox):
 
 
 def extract_formula_text(cropped_image):
-    """Extract mathematical formula text using OCR"""
+    """Extract mathematical formula text using LaTeX OCR with Tesseract fallback"""
     print("\nDEBUG: Starting formula text extraction")
     try:
         if cropped_image is None:
             print("DEBUG: Cannot extract formula from None image")
             return None
 
-        # Resize image if needed
+        # Try LaTeX OCR first
+        try:
+            print("DEBUG: Attempting LaTeX OCR extraction")
+            model = LatexOCR()
+            latex_text = model(cropped_image)
+            if latex_text:
+                print(f"DEBUG: Successfully extracted LaTeX: {latex_text[:50]}...")
+                return latex_text.strip()
+            print("DEBUG: No LaTeX extracted, falling back to Tesseract")
+        except Exception as latex_error:
+            print(f"DEBUG: LaTeX OCR failed: {str(latex_error)}, falling back to Tesseract")
+
+        # Fallback to Tesseract
         print("DEBUG: Resizing image for formula OCR")
         resized_image = resize_for_ocr(cropped_image)
         if resized_image is None:
             print("DEBUG: Failed to resize image for formula OCR")
             return None
 
-        print("DEBUG: Configuring Tesseract for formula recognition")
+        print("DEBUG: Using Tesseract for formula recognition")
         custom_config = r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,;:()[]{}+-=<>/*^_\\"\' \n -c preserve_interword_spaces=1 -c textord_heavy_nr=1 -c textord_min_linesize=2.5'
         extracted_text = pytesseract.image_to_string(
             resized_image, config=custom_config, lang="eng"
         )
         if extracted_text:
-            print(
-                f"DEBUG: Successfully extracted formula text: {extracted_text[:50]}..."
-            )
+            print(f"DEBUG: Successfully extracted formula text: {extracted_text[:50]}...")
         else:
             print("DEBUG: No text extracted from formula image")
         return extracted_text.strip() if extracted_text else None
