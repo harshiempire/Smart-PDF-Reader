@@ -1,9 +1,9 @@
 import os
-
 import easyocr
 import numpy as np
 import pytesseract
 from PIL import Image
+from pix2tex.cli import LatexOCR
 
 
 def resize_for_ocr(image):
