@@ -1,5 +1,5 @@
 from PIL import Image
-from pix2tex.cli import LatexOCR
+from .cli pix2teximport LatexOCR
 
 img = Image.open('formula_test_image.png')
 model = LatexOCR()
