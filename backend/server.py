@@ -31,7 +31,8 @@ generation_config = {
     }
 
 class Payload(BaseModel):
-    prompt:str
+    chat:str
+    history:List
   
 def get_message(text:str, history):
     # Create the model
@@ -49,9 +50,10 @@ def get_message(text:str, history):
         yield f"{ chunk.text }"
 
 @app.post("/stream-chat")
-def stream_chat(data:Payload):
-    prompt = data.prompt
-    return StreamingResponse(get_message(prompt, history=[]), media_type="text/event-stream")
+def stream_chat(data:Payload=None):
+    prompt = data.chat
+    history = data.history
+    return StreamingResponse(get_message(prompt, history=history), media_type="text/event-stream")
 
 if __name__ == "__main__":
 

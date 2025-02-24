@@ -150,7 +150,8 @@ function Home() {
   const handleStreamingChat = async () => {
     /** Prepare POST request data. */
     const chatData = {
-      prompt: inputRef.current.value,
+      chat: inputRef.current.value,
+      history: data
     };
 
     /** Add current user message to history. */
