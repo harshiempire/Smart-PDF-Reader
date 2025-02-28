@@ -18,8 +18,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
 genai.configure(api_key="AIzaSyCHBfiXfzFrehhldrjnWQDbBHkyXZEVXaA") 
 
 generation_config = {

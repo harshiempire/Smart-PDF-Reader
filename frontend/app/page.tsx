@@ -9,16 +9,15 @@ export default function Home() {
   const [streamdiv, setStreamdiv] = useState(false);
 
   const startStreamData = async () => {
+    const ndata = [
+      ...data,
+      { role: "user", parts: [{ text: inputRef.current.value }] },
+    ];
+
+    let modelResponse = "";
     try {
-      let ndata = [
-        ...data,
-        { role: "user", parts: [{ text: inputRef.current.value }] },
-      ];
-
-      var modelResponse = "";
-
       const chatData = {
-        prompt: inputRef.current.value,
+        chat: inputRef.current.value,
         history: ndata,
       };
 
@@ -26,18 +25,28 @@ export default function Home() {
       inputRef.current.value = "";
       inputRef.current.placeholder = "Waiting for model response";
 
+      console.log("hi 1");
+
       const response = await axios.post(
         "http://localhost:8000/stream-chat",
         chatData
       );
-      if (!response.ok || !response.body) {
-        throw response.statusText;
-      }
 
-      ndata = [
-        ...data,
-        { role: "user", parts: [{ text: inputRef.current.value }] },
-      ];
+      console.log("hi 2");
+      console.log("this is response", response);
+      // if (!response.ok || !response.body) {
+
+      //   console.log("we dont have body ",response.body)
+      //   console.log("we dont have ok ",response.ok)
+      //   throw response.statusText;
+      // }
+
+      console.log("hi 3");
+      // ndata = [
+      //   ...data,
+      //   { role: "user", parts: [{ text: inputRef.current.value }] },
+      // ];
+      console.log(ndata);
 
       setStreamdiv(true);
       const reader = response.body.getReader();
@@ -46,17 +55,20 @@ export default function Home() {
         const { value, done } = reader.read();
         if (done) break;
         const decodedTxt = txtdecoder.decode(value, { stream: true });
+        console.log("hi 4");
         setAnswer((prev) => {
           prev + decodedTxt;
         });
 
-        modelResponse += value;
+        modelResponse += decodedTxt;
       }
 
-      setData(updatedData);
+      console.log("in try", data);
     } catch (err) {
       modelResponse = "Error occurred";
+      console.error(err);
     } finally {
+      console.log("in finally", data);
       const updatedData = [
         ...data,
         { role: "model", parts: [{ text: modelResponse }] },
