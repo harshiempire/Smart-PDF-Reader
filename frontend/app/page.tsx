@@ -37,20 +37,10 @@ export default function Home() {
         body: JSON.stringify(chatData),
       });
 
-      // console.log("hi 2");
-      // console.log("this is response", response);
       if (!response.ok || !response.body) {
-        // console.log("we dont have body ", response.body);
-        // console.log("we dont have ok ", response.ok);
         throw response.statusText;
       }
 
-      // console.log("hi 3");
-      // ndata = [
-      //   ...data,
-      //   { role: "user", parts: [{ text: inputRef.current.value }] },
-      // ];
-      // console.log(ndata);
 
       setStreamdiv(true);
       const reader = response.body.getReader();
@@ -59,7 +49,6 @@ export default function Home() {
         const { value, done } = await reader.read();
         if (done) break;
         const decodedTxt = txtdecoder.decode(value, { stream: true });
-        // console.log("hi 4", value);
         setAnswer((prev) => {
           return prev + decodedTxt;
         });
@@ -67,12 +56,9 @@ export default function Home() {
         modelResponse += decodedTxt;
       }
 
-      // console.log("in try", data);
     } catch (err) {
       modelResponse = "Error occurred";
-      // console.error(err);
     } finally {
-      // console.log("in finally", data);
       const updatedData = [
         ...ndata,
         { role: "model", parts: [{ text: modelResponse }] },
