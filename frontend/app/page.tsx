@@ -1,5 +1,4 @@
 "use client";
-import axios from "axios";
 import React, { useRef, useState } from "react";
 
 export default function Home() {
@@ -9,7 +8,7 @@ export default function Home() {
   const [streamdiv, setStreamdiv] = useState(false);
 
   const startStreamData = async () => {
-    const ndata = [
+    let ndata = [
       ...data,
       { role: "user", parts: [{ text: inputRef.current.value }] },
     ];
@@ -25,79 +24,88 @@ export default function Home() {
       inputRef.current.value = "";
       inputRef.current.placeholder = "Waiting for model response";
 
-      console.log("hi 1");
+      // console.log("hi 1");
 
-      const response = await axios.post(
-        "http://localhost:8000/stream-chat",
-        chatData
-      );
+      let headerConfig = {
+        Accept: "application/json, text/plain, */*",
+        "Content-Type": "application/json",
+      };
+      setAnswer("");
+      const response = await fetch("http://localhost:8000/stream-chat", {
+        method: "post",
+        headers: headerConfig,
+        body: JSON.stringify(chatData),
+      });
 
-      console.log("hi 2");
-      console.log("this is response", response);
-      // if (!response.ok || !response.body) {
+      // console.log("hi 2");
+      // console.log("this is response", response);
+      if (!response.ok || !response.body) {
+        // console.log("we dont have body ", response.body);
+        // console.log("we dont have ok ", response.ok);
+        throw response.statusText;
+      }
 
-      //   console.log("we dont have body ",response.body)
-      //   console.log("we dont have ok ",response.ok)
-      //   throw response.statusText;
-      // }
-
-      console.log("hi 3");
+      // console.log("hi 3");
       // ndata = [
       //   ...data,
       //   { role: "user", parts: [{ text: inputRef.current.value }] },
       // ];
-      console.log(ndata);
+      // console.log(ndata);
 
       setStreamdiv(true);
       const reader = response.body.getReader();
       const txtdecoder = new TextDecoder();
       while (true) {
-        const { value, done } = reader.read();
+        const { value, done } = await reader.read();
         if (done) break;
         const decodedTxt = txtdecoder.decode(value, { stream: true });
-        console.log("hi 4");
+        // console.log("hi 4", value);
         setAnswer((prev) => {
-          prev + decodedTxt;
+          return prev + decodedTxt;
         });
 
         modelResponse += decodedTxt;
       }
 
-      console.log("in try", data);
+      // console.log("in try", data);
     } catch (err) {
       modelResponse = "Error occurred";
-      console.error(err);
+      // console.error(err);
     } finally {
-      console.log("in finally", data);
+      // console.log("in finally", data);
       const updatedData = [
-        ...data,
+        ...ndata,
         { role: "model", parts: [{ text: modelResponse }] },
       ];
 
+      setStreamdiv(false);
       inputRef.current.placeholder = "Next messages";
       setData(updatedData);
       setAnswer("");
-      setStreamdiv(false);
     }
   };
 
   return (
-    <div className="grid grid-flow-col grid-rows-3 gap-4 h-screen">
-      <div className="border row-span-3 ">01</div>
-      <div className="border col-span-2 row-span-2">
-        {data.map((msg, index) => {
-          return (
-            <div key={index}>
-              <div>{msg.role}</div>
-              <div>{msg.parts[0].text}</div>
-            </div>
-          );
-        })}
-        {streamdiv && <div>{answer}</div>}
-      </div>
-      <div className="border col-span-2 ">
-        <input ref={inputRef} />
-        <button onClick={startStreamData}>send</button>
+    <div className="container m-auto grid grid-cols-3 gap-4 md:grid-cols-5 lg:grid-cols-8 ">
+      <div className="tile col-start-1 col-end-4 bg-teal-500 md:col-start-1 md:col-end-6 lg:col-start-1 lg:col-end-9">01</div>
+      <div className="h-screen tile col-span-1 border md:col-span-2 lg:col-span-3">02</div>
+      <div className="tile col-span-2 border md:col-span-3 lg:col-span-5">
+        <div className="">
+          {data.map((msg, index) => {
+            return (
+              <div key={index}>
+                
+                <div className="">{msg.role}</div>
+                <div>{msg.parts[0].text}</div>
+              </div>
+            );
+          })}
+          {streamdiv && <div>{answer}</div>}
+        </div>
+        <div className="">
+          <input className="font-black" ref={inputRef} />
+          <button onClick={startStreamData}>send</button>
+        </div>
       </div>
     </div>
   );
