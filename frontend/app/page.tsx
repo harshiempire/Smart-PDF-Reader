@@ -9,17 +9,18 @@ export default function Home() {
   const [streamdiv, setStreamdiv] = useState(false);
 
   const startStreamData = async () => {
-    const ndata = [
-      ...data,
-      { role: "user", parts: [{ text: inputRef.current.value }] },
-    ];
+    try {
+      let ndata = [
+        ...data,
+        { role: "user", parts: [{ text: inputRef.current.value }] },
+      ];
 
-      let modelResponse = "";
+      var modelResponse = "";
 
       const chatData = {
         prompt: inputRef.current.value,
-        history: 
-      }
+        history: ndata,
+      };
 
       setData(ndata);
       inputRef.current.value = "";
@@ -33,18 +34,20 @@ export default function Home() {
         throw response.statusText;
       }
 
-      const ndata = [
+      ndata = [
         ...data,
         { role: "user", parts: [{ text: inputRef.current.value }] },
       ];
 
+      setStreamdiv(true);
       const reader = response.body.getReader();
       const txtdecoder = new TextDecoder();
       while (true) {
         const { value, done } = reader.read();
         if (done) break;
+        const decodedTxt = txtdecoder.decode(value, { stream: true });
         setAnswer((prev) => {
-          prev + value;
+          prev + decodedTxt;
         });
 
         modelResponse += value;
@@ -55,10 +58,14 @@ export default function Home() {
       modelResponse = "Error occurred";
     } finally {
       const updatedData = [
-        ...ndata,
+        ...data,
         { role: "model", parts: [{ text: modelResponse }] },
       ];
+
+      inputRef.current.placeholder = "Next messages";
+      setData(updatedData);
       setAnswer("");
+      setStreamdiv(false);
     }
   };
 
@@ -78,7 +85,7 @@ export default function Home() {
       </div>
       <div className="border col-span-2 ">
         <input ref={inputRef} />
-        <button onClick={startStreamData}></button>
+        <button onClick={startStreamData}>send</button>
       </div>
     </div>
   );
