@@ -1,5 +1,6 @@
 "use client";
 import React, { useRef, useState } from "react";
+import Markdown from "react-markdown";
 
 export default function Home() {
   const inputRef = useRef(null);
@@ -25,6 +26,7 @@ export default function Home() {
       inputRef.current.placeholder = "Waiting for model response";
 
       // console.log("hi 1");
+      executeScroll();
 
       let headerConfig = {
         Accept: "application/json, text/plain, */*",
@@ -41,7 +43,6 @@ export default function Home() {
         throw response.statusText;
       }
 
-
       setStreamdiv(true);
       const reader = response.body.getReader();
       const txtdecoder = new TextDecoder();
@@ -54,10 +55,11 @@ export default function Home() {
         });
 
         modelResponse += decodedTxt;
+        executeScroll();
       }
-
     } catch (err) {
       modelResponse = "Error occurred";
+      console.error(err);
     } finally {
       const updatedData = [
         ...ndata,
@@ -71,25 +73,38 @@ export default function Home() {
     }
   };
 
+  function executeScroll() {
+    const element = document.getElementById("checkpoint");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  }
   return (
-    <div className="container m-auto grid grid-cols-3 gap-4 md:grid-cols-5 lg:grid-cols-8 ">
-      <div className="tile col-start-1 col-end-4 bg-teal-500 md:col-start-1 md:col-end-6 lg:col-start-1 lg:col-end-9">01</div>
-      <div className="h-screen tile col-span-1 border md:col-span-2 lg:col-span-3">02</div>
-      <div className="tile col-span-2 border md:col-span-3 lg:col-span-5">
+    <div className="px-5 m-auto grid grid-cols-3 gap-4 md:grid-cols-5 lg:grid-cols-8 ">
+      <div className="overflow-y-scroll h-screen tile col-span-1 border md:col-span-2 lg:col-span-3">
+        02
+      </div>
+      <div className=" overflow-y-scroll h-screen tile col-span-2 border md:col-span-3 lg:col-span-5">
         <div className="">
           {data.map((msg, index) => {
             return (
               <div key={index}>
-                
                 <div className="">{msg.role}</div>
-                <div>{msg.parts[0].text}</div>
+                <div className="p-3">
+                  <Markdown>{msg.parts[0].text}</Markdown>
+                </div>
               </div>
             );
           })}
-          {streamdiv && <div>{answer}</div>}
+          {streamdiv && (
+            <div className="p-3">
+              <Markdown>{answer}</Markdown>
+            </div>
+          )}
+          <span id="checkpoint"></span>
         </div>
         <div className="">
-          <input className="font-black" ref={inputRef} />
+          <input className="text-black" ref={inputRef} />
           <button onClick={startStreamData}>send</button>
         </div>
       </div>
