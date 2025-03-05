@@ -1,29 +1,49 @@
 "use client";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 
 export default function Home() {
+  const handleKeypress = (e: any) => {
+    // It's triggers by pressing the enter key
+    if (e.keyCode == 13 && !e.shiftKey) {
+      startStreamData();
+      e.preventDefault();
+    }
+  };
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showEmptyChat, setShowEmptyChat] = useState(true);
+  const [conversation, setConversation] = useState<any[]>([]);
+  const [message, setMessage] = useState("");
+const { textAreaRef, resizeTextArea } = useAutoResizeTextArea();
+
+
   const inputRef = useRef(null);
   const [data, setData] = useState([]);
   const [answer, setAnswer] = useState("");
   const [streamdiv, setStreamdiv] = useState(false);
-
+  useEffect(() => {
+    if (textAreaRef.current) {
+      textAreaRef.current.style.height = "24px";
+      textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
+    }
+  }, [answer, textAreaRef]);
   const startStreamData = async () => {
     let ndata = [
       ...data,
-      { role: "user", parts: [{ text: inputRef.current.value }] },
+      { role: "user", parts: [{ text: textAreaRef.current.value }] },
     ];
 
     let modelResponse = "";
     try {
       const chatData = {
-        chat: inputRef.current.value,
+        chat: textAreaRef.current.value,
         history: ndata,
       };
 
       setData(ndata);
-      inputRef.current.value = "";
-      inputRef.current.placeholder = "Waiting for model response";
+      textAreaRef.current.value = "";
+      textAreaRef.current.placeholder = "Waiting for model response";
 
       // console.log("hi 1");
       executeScroll();
@@ -67,7 +87,7 @@ export default function Home() {
       ];
 
       setStreamdiv(false);
-      inputRef.current.placeholder = "Next messages";
+      textAreaRef.current.placeholder = "Next messages";
       setData(updatedData);
       setAnswer("");
     }
@@ -80,12 +100,12 @@ export default function Home() {
     }
   }
   return (
-    <div className="px-5 m-auto grid grid-cols-3 gap-4 md:grid-cols-5 lg:grid-cols-8 ">
-      <div className="overflow-y-scroll h-screen tile col-span-1 border md:col-span-2 lg:col-span-3">
-        02
+    <div className="flex h-screen">
+      <div className="sidebar m-0 h-full w-1/2 border border-gray-500">
+        Side Bar for chat list
       </div>
-      <div className=" overflow-y-scroll h-screen tile col-span-2 border md:col-span-3 lg:col-span-5">
-        <div className="messages w-full">
+      <div className="overflow-y-auto justify- m-0 flex h-full w-1/2 flex-col border border-gray-500">
+        <div className="overflow-y-auto messages flex-grow border border-gray-900">
           {data.map((msg, index) => {
             return (
               <div key={index}>
@@ -97,17 +117,48 @@ export default function Home() {
             );
           })}
           {streamdiv && (
-            <div className="p-3">
-              <Markdown>{answer}</Markdown>
-            </div>
+            <>
+              {"model"}
+              <div className="p-3">
+                <Markdown>{answer}</Markdown>
+              </div>
+            </>
           )}
-          <span id="checkpoint"></span>
+          <span className="my-9" id="checkpoint"></span>
         </div>
-        <div className="">
-          <input className="text-black" ref={inputRef} />
-          <button onClick={startStreamData}>send</button>
+        <div className="inputmessage h-20 border border-gray-900">
+          <textarea
+            className="m-0 w-full resize-none border-0 bg-transparent p-0 pr-7 focus:ring-0 focus-visible:ring-0 dark:bg-transparent pl-2 md:pl-0"
+            ref={textAreaRef}
+            onInput={resizeTextArea}  // This ensures height updates dynamically
+
+            placeholder="Send a message..."
+            onKeyDown={handleKeypress}
+            style={{
+              height: "24px",
+              maxHeight: "200px",
+              overflowY: "hidden",
+            }}
+          />
         </div>
       </div>
     </div>
   );
 }
+function useAutoResizeTextArea() {
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  const resizeTextArea = () => {
+    if (textAreaRef.current) {
+      textAreaRef.current.style.height = "auto"; // Reset height first
+      textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`; // Set new height
+    }
+  };
+
+  useEffect(() => {
+    resizeTextArea();
+  }, []);
+
+  return { textAreaRef, resizeTextArea };
+}
+
