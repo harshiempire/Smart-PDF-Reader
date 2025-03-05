@@ -85,7 +85,7 @@ export default function Home() {
         02
       </div>
       <div className=" overflow-y-scroll h-screen tile col-span-2 border md:col-span-3 lg:col-span-5">
-        <div className="">
+        <div className="messages w-full">
           {data.map((msg, index) => {
             return (
               <div key={index}>
