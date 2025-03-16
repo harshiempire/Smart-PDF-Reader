@@ -5,7 +5,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Dict, List
 from fastapi.middleware.cors import CORSMiddleware
-
+from db import DBClient
 
 app = FastAPI()
 
@@ -52,6 +52,12 @@ def stream_chat(data:Payload=None):
     prompt = data.chat
     history = data.history
     return StreamingResponse(get_message(prompt, history=history), media_type="text/event-stream")
+
+@app.get("/testing-client")
+async def testing_client():
+    client1 = await DBClient.connect()
+    client2 = await DBClient.connect()
+    print(id(client1) == id(client2)) 
 
 if __name__ == "__main__":
 
