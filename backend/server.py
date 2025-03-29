@@ -1,13 +1,21 @@
-import os
 import google.generativeai as genai
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Dict, List
 from fastapi.middleware.cors import CORSMiddleware
-from db import DBClient
+from contextlib import asynccontextmanager
 
-app = FastAPI()
+from backend.db import DBClient
+
+client = None
+async def lifespan(app: FastAPI):
+    client = await DBClient.getInstance()  # ✅ Correct way to access DBClient
+    yield
+    DBClient.disconnect() 
+
+
+app = FastAPI(lifespan=lifespan)
 
 origins = ["*"]
 
@@ -27,6 +35,9 @@ generation_config = {
     "max_output_tokens": 8192,
     "response_mime_type": "text/plain",
     }
+
+        # DBClient._client = AsyncIOMotorClient("mongodb+srv://alleharshith:dnKUfZ1JnrmAoJt5@cluster0.5bitg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+
 
 class Payload(BaseModel):
     chat:str
@@ -55,9 +66,12 @@ def stream_chat(data:Payload=None):
 
 @app.get("/testing-client")
 async def testing_client():
-    client1 = await DBClient.connect()
-    client2 = await DBClient.connect()
-    print(id(client1) == id(client2)) 
+    instance1 = await DBClient.getInstance()
+    instance2 = await DBClient.getInstance()
+    return {
+        "connected": instance1 is not None and instance2 is not None,
+        "is_singleton": instance1 is instance2
+    }
 
 if __name__ == "__main__":
 
