@@ -1,5 +1,7 @@
+import os
+import tempfile
 import google.generativeai as genai
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Dict, List
@@ -7,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from backend.db import DBClient
+from backend.document_pipeline import process_and_store_document
 
 client = None
 async def lifespan(app: FastAPI):
@@ -72,6 +75,20 @@ async def testing_client():
         "connected": instance1 is not None and instance2 is not None,
         "is_singleton": instance1 is instance2
     }
+
+
+@app.post("/process-pdf")
+async def process_pdf_endpoint(user_id: str, file: UploadFile = File(...)):
+    """Upload a PDF and store its extracted segments."""
+    contents = await file.read()
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        tmp.write(contents)
+        tmp_path = tmp.name
+    try:
+        document_id = await process_and_store_document(tmp_path, user_id)
+    finally:
+        os.unlink(tmp_path)
+    return {"document_id": document_id}
 
 if __name__ == "__main__":
 

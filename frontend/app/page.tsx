@@ -78,8 +78,12 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen">
-      {/* Sidebar for Chat List */}
+    <div className="flex flex-col h-screen">
+      <div className="p-2 border-b">
+        <a href="/upload" className="underline text-blue-600">Upload PDF</a>
+      </div>
+      <div className="flex flex-1">
+        {/* Sidebar for Chat List */}
       <div className="h-full w-1/2 border border-gray-500 flex-shrink-0">
         Side Bar for chat list
       </div>
